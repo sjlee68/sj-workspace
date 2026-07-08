@@ -1,0 +1,2336 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#0d9488">
+<title>FIORESE 상품기획 워크스페이스</title>
+<style>
+  :root{
+    --ink:#1a1d26; --ink-2:#5a6472; --ink-3:#98a1b0;
+    --bg:#f4f5f8; --card:#fff; --line:#e6e8ee; --line-2:#eef0f4;
+    --nav:#141a2e; --nav-2:#9aa4bd; --nav-hover:#1e2740; --nav-active:#2563eb;
+    --blue:#2563eb; --blue-soft:#e8f0fe;
+    --pink:#db2777; --pink-soft:#fce7f2;
+    --brand:#2563eb; --brand-soft:#e8f0fe;
+    --done:#16a34a; --done-soft:#dcfce7;
+    --amber:#ca8a04; --amber-soft:#fef9c3;
+    --rose:#e11d48; --rose-soft:#ffe4e9;
+    --violet:#7c3aed; --violet-soft:#ede4fd;
+    --gray-soft:#eceef2;
+    --shadow:0 1px 2px rgba(26,29,38,.04),0 4px 16px rgba(26,29,38,.06);
+    --shadow-lg:0 4px 24px rgba(26,29,38,.10);
+    --sidebar-w:230px; --rail-w:296px; --header-h:56px;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{-webkit-text-size-adjust:100%}
+  body{font-family:-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Pretendard","Malgun Gothic",sans-serif;
+    background:var(--bg);color:var(--ink);line-height:1.5;-webkit-font-smoothing:antialiased}
+  button{font-family:inherit;cursor:pointer}
+  .num{font-variant-numeric:tabular-nums}
+  .hide{display:none!important}
+
+  /* ===== 앱 셸 ===== */
+  .app{display:grid;grid-template-columns:var(--sidebar-w) 1fr;min-height:100vh}
+
+  /* 사이드바 */
+  .sidebar{background:var(--nav);color:#fff;position:fixed;top:0;left:0;bottom:0;width:var(--sidebar-w);
+    display:flex;flex-direction:column;z-index:60;transition:transform .25s ease}
+  .sb-brand{padding:18px 18px 14px;display:flex;align-items:center;gap:10px}
+  .sb-logo{width:30px;height:30px;border-radius:8px;background:linear-gradient(135deg,var(--brand),#0891b2);
+    display:flex;align-items:center;justify-content:center;font-weight:800;font-size:14px;color:#fff;flex-shrink:0}
+  .sb-brand .bt{font-size:14px;font-weight:800;letter-spacing:-.01em;line-height:1.2}
+  .sb-brand .bs{font-size:10.5px;color:var(--nav-2);font-weight:600}
+  .sb-nav{flex:1;overflow-y:auto;padding:6px 10px}
+  .sb-group{font-size:10px;font-weight:700;color:#5a6484;letter-spacing:.06em;text-transform:uppercase;padding:12px 10px 6px}
+  .sb-item{display:flex;align-items:center;gap:11px;padding:9px 11px;border-radius:9px;color:var(--nav-2);
+    font-size:13px;font-weight:600;border:none;background:transparent;width:100%;text-align:left;transition:.12s}
+  .sb-item:hover{background:var(--nav-hover);color:#e6e9f2}
+  .sb-item.active{background:var(--nav-active);color:#fff;font-weight:700}
+  .sb-item .ico{width:17px;height:17px;flex-shrink:0;stroke-width:2}
+  .sb-item .cnt{margin-left:auto;font-size:10.5px;font-weight:700;background:rgba(255,255,255,.1);
+    padding:1px 7px;border-radius:10px;color:var(--nav-2)}
+  .sb-item.active .cnt{background:rgba(255,255,255,.22);color:#fff}
+  .sb-foot{padding:12px 16px;border-top:1px solid rgba(255,255,255,.08);font-size:10.5px;color:#5a6484;line-height:1.5}
+
+  /* 메인 컬럼 */
+  .main{grid-column:2;display:flex;flex-direction:column;min-width:0}
+  .header{height:var(--header-h);background:var(--card);border-bottom:1px solid var(--line);
+    display:flex;align-items:center;gap:12px;padding:0 18px;position:sticky;top:0;z-index:50}
+  .hamburger{display:none;width:34px;height:34px;border:none;background:transparent;border-radius:8px;
+    align-items:center;justify-content:center}
+  .hamburger:hover{background:var(--gray-soft)}
+  .header .htitle{font-size:15px;font-weight:800;letter-spacing:-.01em}
+  .header .hspacer{margin-left:auto}
+  .header .hicon{width:36px;height:36px;border:none;background:transparent;border-radius:9px;display:flex;align-items:center;justify-content:center;color:var(--ink-2);position:relative}
+  .header .hicon:hover{background:var(--gray-soft)}
+  .header .hicon .ndot{position:absolute;top:7px;right:8px;width:8px;height:8px;background:var(--rose);border-radius:50%;border:1.5px solid var(--card)}
+  .notif-panel{position:fixed;top:calc(var(--header-h) + 4px);right:14px;width:330px;max-width:calc(100vw - 28px);background:var(--card);
+    border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow-lg);z-index:80;overflow:hidden;display:none}
+  .notif-panel.show{display:block;animation:fade .15s ease}
+  .notif-h{display:flex;align-items:center;justify-content:space-between;padding:13px 15px;border-bottom:1px solid var(--line)}
+  .notif-h .nt{font-size:13px;font-weight:800}
+  .notif-h .nclear{font-size:11px;color:var(--ink-3);font-weight:700;border:none;background:transparent;cursor:pointer}
+  .notif-h .nclear:hover{color:var(--rose)}
+  .notif-list{max-height:60vh;overflow-y:auto}
+  .notif-item{display:flex;gap:11px;padding:12px 15px;border-bottom:1px solid var(--line-2);cursor:pointer;transition:.1s}
+  .notif-item:last-child{border-bottom:none}
+  .notif-item:hover{background:var(--bg)}
+  .notif-item .ni-ic{width:30px;height:30px;border-radius:8px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:14px;background:var(--blue-soft)}
+  .notif-item .ni-body{flex:1;min-width:0}
+  .notif-item .ni-t{font-size:12.5px;font-weight:700;line-height:1.35}
+  .notif-item .ni-m{font-size:11px;color:var(--ink-2);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .notif-item .ni-go{color:var(--ink-3);font-size:14px;flex-shrink:0;align-self:center}
+  .notif-empty{padding:26px 15px;text-align:center;font-size:12px;color:var(--ink-3)}
+  .header .hsearch{margin-left:auto;display:flex;align-items:center;gap:8px;background:var(--bg);
+    border:1px solid var(--line);border-radius:9px;padding:7px 12px;width:230px;max-width:38vw}
+  .header .hsearch input{border:none;background:transparent;outline:none;font-size:12.5px;width:100%;font-family:inherit;color:var(--ink)}
+  .header .hicon{width:34px;height:34px;border:none;background:transparent;border-radius:8px;display:flex;
+    align-items:center;justify-content:center;color:var(--ink-2);position:relative}
+  .header .hicon:hover{background:var(--gray-soft)}
+  .header .hicon .dot{position:absolute;top:7px;right:8px;width:7px;height:7px;background:var(--rose);border-radius:50%;border:1.5px solid var(--card)}
+  .header .havatar{width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,var(--brand),#0891b2);
+    color:#fff;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800}
+
+  /* 콘텐츠 = 메인 본문 + 우측 레일 */
+  .content{flex:1;display:grid;grid-template-columns:1fr var(--rail-w);gap:0;min-width:0}
+  .content.no-rail{grid-template-columns:1fr}
+  .panel-main{padding:20px 22px 48px;min-width:0}
+  .rail{border-left:1px solid var(--line);background:var(--card);padding:18px 16px 40px;min-width:0}
+  /* PC: 본문과 우측 레일 각각 독립 스크롤 */
+  @media(min-width:1081px){
+    .main{height:100vh;overflow:hidden}
+    .content{flex:1;min-height:0;overflow:hidden}
+    .panel-main{overflow-y:auto;height:100%}
+    .rail{overflow-y:auto;height:100%}
+  }
+
+  section{display:none}
+  section.active{display:block;animation:fade .2s ease}
+  @keyframes fade{from{opacity:0;transform:translateY(3px)}to{opacity:1;transform:none}}
+
+  .page-h{display:flex;justify-content:space-between;align-items:flex-end;gap:12px;margin-bottom:18px;flex-wrap:wrap}
+  .page-h .pt{font-size:20px;font-weight:800;letter-spacing:-.02em}
+  .page-h .ps{font-size:12px;color:var(--ink-2);margin-top:3px;font-weight:500}
+  .toggle{display:flex;background:var(--gray-soft);border-radius:9px;padding:2px}
+  .toggle button{border:none;background:transparent;font-size:11.5px;font-weight:700;color:var(--ink-2);padding:6px 12px;border-radius:7px}
+  .toggle button.on{background:#fff;color:var(--ink);box-shadow:0 1px 2px rgba(0,0,0,.08)}
+
+  .banner{background:var(--amber-soft);color:#8a5a12;font-size:12px;font-weight:600;padding:10px 13px;border-radius:10px;margin-bottom:16px;line-height:1.5}
+  .banner.secure{background:var(--rose-soft);color:#a01432}
+  .banner.info{background:var(--blue-soft);color:#1d4ed8}
+
+  /* ===== 요약 카드 (증감) ===== */
+  .kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:22px}
+  .kpi{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px;box-shadow:var(--shadow)}
+  .kpi .kt{font-size:11.5px;color:var(--ink-2);font-weight:600;display:flex;align-items:center;gap:6px}
+  .kpi .kt .kdot{width:7px;height:7px;border-radius:50%}
+  .kpi .kn{font-size:27px;font-weight:800;letter-spacing:-.03em;margin-top:8px;line-height:1}
+  .kpi .kd{font-size:11px;font-weight:700;margin-top:7px;display:inline-flex;align-items:center;gap:3px}
+  .kpi .kd.up{color:var(--rose)} .kpi .kd.down{color:var(--done)} .kpi .kd.flat{color:var(--ink-3)}
+
+  /* ===== 공통 카드/섹션 ===== */
+  .card{background:var(--card);border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow)}
+  .block{margin-bottom:22px}
+  .block-h{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+  .block-h .bt{font-size:13.5px;font-weight:800;letter-spacing:-.01em;display:flex;align-items:center;gap:8px}
+  .block-h .bmore{font-size:11.5px;color:var(--ink-3);font-weight:700;border:none;background:transparent}
+  .block-h .bmore:hover{color:var(--brand)}
+
+  /* 리스트 행 */
+  .lrow{display:flex;align-items:center;gap:12px;padding:12px 14px;border-bottom:1px solid var(--line-2);cursor:pointer;transition:.1s}
+  .lrow:last-child{border-bottom:none}
+  .lrow:hover{background:var(--bg)}
+  .lrow .lk{width:4px;height:32px;border-radius:3px;flex-shrink:0;background:var(--ink-3)}
+  .lrow.p-rose .lk{background:var(--rose)} .lrow.p-amber .lk{background:var(--amber)}
+  .lrow.p-blue .lk{background:var(--blue)} .lrow.p-violet .lk{background:var(--violet)}
+  .lrow.p-brand .lk{background:var(--brand)} .lrow.p-pink .lk{background:var(--pink)}
+  .lrow.p-done .lk{background:var(--done)}
+  .lrow .lbody{flex:1;min-width:0}
+  .lrow .ltitle{font-size:13px;font-weight:700;line-height:1.35}
+  .lrow .lmeta{font-size:11.5px;color:var(--ink-2);margin-top:2px}
+  .lrow .lgo{color:var(--ink-3);font-size:15px;flex-shrink:0}
+
+  .badge{font-size:10.5px;font-weight:700;padding:3px 9px;border-radius:6px;white-space:nowrap;display:inline-block;letter-spacing:.01em}
+  .b-done{background:var(--done-soft);color:#12833d}
+  .b-prog{background:var(--blue-soft);color:var(--blue)}
+  .b-wait{background:var(--gray-soft);color:var(--ink-2)}
+  .b-warn{background:var(--amber-soft);color:#b45f09}
+  .b-risk{background:var(--rose-soft);color:var(--rose)}
+  .b-na{background:#eef0f3;color:var(--ink-3)}
+  .b-hold{background:var(--violet-soft);color:var(--violet)}
+  .b-shared{background:var(--violet-soft);color:var(--violet)}
+  .b-gone{background:#eceef2;color:#5a6472}
+  .b-check{background:var(--rose-soft);color:var(--rose)}
+  .tag{font-size:10px;font-weight:800;padding:3px 9px;border-radius:6px;background:var(--gray-soft);color:var(--ink-2);letter-spacing:.02em;flex-shrink:0}
+  .tag.t-rose{background:var(--rose-soft);color:var(--rose)} .tag.t-amber{background:var(--amber-soft);color:#b45f09}
+  .tag.t-blue{background:var(--blue-soft);color:var(--blue)} .tag.t-violet{background:var(--violet-soft);color:var(--violet)}
+
+  /* 라인 진행률 */
+  .lineprog{display:flex;align-items:center;gap:12px;padding:11px 14px;border-bottom:1px solid var(--line-2)}
+  .lineprog:last-child{border-bottom:none}
+  .lineprog .lpl{font-size:12.5px;font-weight:700;min-width:150px}
+  .lineprog .lpbar{flex:1;height:7px;background:var(--gray-soft);border-radius:20px;overflow:hidden}
+  .lineprog .lpbar i{display:block;height:100%;border-radius:20px}
+  .lineprog .lppct{font-size:12px;font-weight:800;min-width:40px;text-align:right}
+
+  /* ===== 미니 캘린더 ===== */
+  .weather-card{display:grid;grid-template-columns:repeat(7,1fr);padding:6px 4px}
+  .wday{display:flex;flex-direction:column;align-items:center;gap:5px;padding:10px 2px;border-radius:10px}
+  .wday.today{background:var(--blue-soft)}
+  .wday .wd{font-size:11px;font-weight:700;color:var(--ink-2)}
+  .wday.today .wd{color:var(--blue)}
+  .wday .wic{font-size:19px;line-height:1}
+  .wday .wt{display:flex;flex-direction:column;align-items:center;gap:1px}
+  .wday .whi{font-size:12px;font-weight:800}
+  .wday .wlo{font-size:11px;color:var(--ink-3);font-weight:600}
+  .cal-cell{cursor:pointer}
+  .cal-cell.sel{outline:2px solid var(--blue);outline-offset:-2px;border-radius:8px;color:var(--blue);font-weight:800}
+  .cal-cell.today.sel{outline-color:#fff}
+  .rdot{width:8px;height:8px;border-radius:50%;flex-shrink:0;margin-top:5px;background:var(--ink-3)}
+  .rdot.p-rose{background:var(--rose)} .rdot.p-amber{background:var(--amber)}
+  .rdot.p-blue{background:var(--blue)} .rdot.p-violet{background:var(--violet)}
+  .rempty{font-size:12px;color:var(--ink-3);padding:12px 2px;text-align:center}
+  /* 인증 */
+  .cert-block{margin-top:10px} .cert-block:first-of-type{margin-top:8px}
+  .cert-b-h{font-size:11px;font-weight:800;color:var(--brand);margin-bottom:5px}
+  .cert-block .mgrid{grid-template-columns:1fr 1fr 1fr}
+  .cert-x{color:var(--rose);font-weight:800}
+  .cert-prog{color:var(--amber);font-weight:700}
+  .doclink{color:var(--blue);font-weight:700;cursor:pointer}
+  .doclink:hover{text-decoration:underline}
+  /* 금일 업무 */
+  .tchk{width:20px;height:20px;border-radius:6px;border:1.5px solid var(--line);flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:12px;color:#fff;cursor:pointer}
+  .tchk.on{background:var(--brand);border-color:var(--brand)}
+  .addrow{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+  .tinput{border:1px solid var(--line);border-radius:9px;padding:9px 12px;font-size:13px;font-family:inherit;outline:none;color:var(--ink);background:var(--card)}
+  .tinput:focus{border-color:var(--brand)}
+  .addbtn{display:inline-flex;align-items:center;gap:6px;background:var(--brand);color:#fff;border:none;font-size:13px;font-weight:700;padding:9px 16px;border-radius:9px}
+  .addbtn:hover{background:#1d4ed8}
+  .tdel{border:none;background:transparent;color:var(--ink-3);font-size:13px;flex-shrink:0;padding:4px 6px;border-radius:6px}
+  .tdel:hover{background:var(--rose-soft);color:var(--rose)}
+  .savehint{font-size:11.5px;color:var(--ink-3);font-weight:600;margin-top:10px}
+  .savehint.ok{color:var(--done);font-weight:700}
+  /* 편집 가능 셀 */
+  .editable{cursor:pointer;border-bottom:1px dashed var(--blue)!important;position:relative}
+  .editable:hover{background:var(--blue-soft)}
+  .celledit{width:80px;border:1px solid var(--blue);border-radius:6px;padding:4px 6px;font-size:12px;font-family:inherit;outline:none}
+  .stedit{cursor:pointer}
+  .stedit:hover{background:var(--blue-soft)}
+  .pi-toggle{cursor:pointer}
+  .pi-toggle:hover{background:var(--blue-soft)}
+  .prog-cell{cursor:pointer}
+  .prog-cell:hover{background:var(--blue-soft)}
+  .matct{cursor:pointer}
+  .matct:hover{background:var(--blue-soft)}
+  .ed-pencil{color:var(--ink-3);font-size:10px;opacity:0;transition:.1s}
+  .stedit:hover .ed-pencil{opacity:1}
+  /* .eml 드롭 영역 */
+  .emldrop{background:var(--card);border:1.5px dashed var(--line);border-radius:13px;padding:22px 16px;text-align:center;cursor:pointer;transition:.15s;box-shadow:var(--shadow)}
+  .emldrop:hover{border-color:var(--brand);background:var(--blue-soft)}
+  .emldrop.over{border-color:var(--brand);background:var(--blue-soft);transform:scale(1.01)}
+  .emldrop .emld-ic{font-size:26px;margin-bottom:6px}
+  .emldrop .emld-t{font-size:13px;font-weight:800}
+  .emldrop .emld-s{font-size:11px;color:var(--ink-2);margin-top:4px;line-height:1.5;font-weight:500}
+  /* 주간 */
+  .wk-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+  @media(max-width:820px){.wk-grid{grid-template-columns:1fr}}
+  /* 트렌드 뉴스 */
+  .news-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:13px}
+  .news-card{background:var(--card);border:1px solid var(--line);border-radius:13px;padding:15px;box-shadow:var(--shadow)}
+  .news-h{display:flex;justify-content:space-between;align-items:center;margin-bottom:9px}
+  .news-date{font-size:11px;color:var(--ink-3);font-weight:600}
+  .news-t{font-size:13.5px;font-weight:800;line-height:1.4;letter-spacing:-.01em}
+  .news-s{font-size:12px;color:var(--ink-2);margin-top:7px;line-height:1.5}
+  .news-src{font-size:11px;color:var(--ink-3);font-weight:700;margin-top:10px}
+  .news-card{cursor:pointer;transition:.12s;position:relative}
+  .news-del{position:absolute;top:8px;right:8px;border:none;background:transparent;color:var(--ink-3);font-size:12px;padding:3px 6px;border-radius:6px;opacity:0;transition:.1s;z-index:2}
+  .news-card:hover .news-del{opacity:1}
+  .news-del:hover{background:var(--rose-soft);color:var(--rose)}
+  .news-card:hover{border-color:var(--brand);transform:translateY(-1px);box-shadow:var(--shadow-lg)}
+  .news-more{color:var(--brand);float:right}
+  .trend-search{display:flex;align-items:center;gap:8px;background:var(--card);border:1px solid var(--line);border-radius:11px;padding:10px 14px;box-shadow:var(--shadow)}
+  .trend-search .ts-ic{font-size:14px;opacity:.6}
+  .trend-search input{flex:1;border:none;outline:none;font-size:13px;font-family:inherit;background:transparent;color:var(--ink)}
+  .trend-search .ts-clear{border:none;background:var(--gray-soft);color:var(--ink-2);width:22px;height:22px;border-radius:50%;font-size:11px;cursor:pointer;flex-shrink:0}
+  .trend-link{display:inline-flex;align-items:center;gap:6px;margin-top:16px;background:var(--brand);color:#fff;text-decoration:none;font-size:13px;font-weight:700;padding:10px 16px;border-radius:10px}
+  .trend-link:hover{background:#1d4ed8}
+  /* 원료 */
+  .ing-y{color:#12833d;font-weight:800;font-size:12px}
+  .ing-n{color:var(--ink-3);font-weight:700;font-size:12px}
+  .igchk{display:inline-flex;align-items:center;gap:4px;font-size:12px;font-weight:600;color:var(--ink-2);cursor:pointer}
+  .igchk input{cursor:pointer}
+  .fieldrow{margin-bottom:12px}
+  .flbl{display:block;font-size:11.5px;font-weight:700;color:var(--ink-2);margin-bottom:5px}
+  .modal-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:6px}
+  .ing-box{max-width:560px}
+  .ing-sec-h{font-size:11.5px;font-weight:800;color:var(--brand);margin-bottom:7px}
+  .ing-text{font-size:12.5px;line-height:1.7;color:var(--ink-2);word-break:keep-all;background:var(--bg);border-radius:10px;padding:12px 14px}
+  .cal{padding:4px 2px}
+  .cal-h{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+  .cal-h .cm{font-size:13px;font-weight:800}
+  .cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:2px}
+  .cal-grid .cw{font-size:10px;color:var(--ink-3);font-weight:700;text-align:center;padding:4px 0}
+  .cal-cell{aspect-ratio:1;display:flex;flex-direction:column;align-items:center;justify-content:center;
+    font-size:11.5px;font-weight:600;border-radius:8px;position:relative;color:var(--ink-2)}
+  .cal-cell.today{background:var(--brand);color:#fff;font-weight:800}
+  .cal-cell.has::after{content:"";position:absolute;bottom:4px;width:4px;height:4px;border-radius:50%;background:var(--amber)}
+  .cal-cell.today.has::after{background:#fff}
+  .cal-cell.dim{color:var(--ink-3);opacity:.4}
+
+  /* 우측 레일 이벤트 */
+  .revent{display:flex;gap:10px;padding:10px 0;border-bottom:1px solid var(--line-2)}
+  .revent:last-child{border-bottom:none}
+  .revent .rdate{font-size:10.5px;font-weight:800;color:var(--brand);min-width:38px;flex-shrink:0;padding-top:1px}
+  .revent .rbody .rt{font-size:12px;font-weight:700;line-height:1.35}
+  .revent .rbody .rm{font-size:11px;color:var(--ink-2);margin-top:1px}
+
+  /* ===== 테이블 ===== */
+  .tablecard{background:var(--card);border:1px solid var(--line);border-radius:14px;overflow:hidden;box-shadow:var(--shadow)}
+  .scrollx{overflow-x:auto;-webkit-overflow-scrolling:touch}
+  table{border-collapse:collapse;font-size:12.5px;width:100%;min-width:max-content}
+  thead th{text-align:left;font-size:11px;font-weight:700;color:var(--ink-2);padding:11px 13px;background:#fafbfc;border-bottom:1px solid var(--line);white-space:nowrap;position:sticky;top:0}
+  thead th.grp{text-align:center;background:#f2f4f7;border-left:1px solid var(--line)}
+  tbody td{padding:11px 13px;border-bottom:1px solid var(--line-2);white-space:nowrap;vertical-align:middle}
+  tbody tr:last-child td{border-bottom:none}
+  tbody tr:hover{background:#fafbfc}
+  .stickyc{position:sticky;left:0;background:var(--card);z-index:2;font-weight:700;box-shadow:1px 0 0 var(--line)}
+  thead .stickyc{background:#fafbfc;z-index:5}
+  tr.ph-row .stickyc{background:var(--blue-soft)} tr.gb-row .stickyc{background:var(--pink-soft)}
+  .right{text-align:right}
+
+  /* ===== 카드형(모바일 등) ===== */
+  .cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:11px;align-items:start}
+  .mcard{background:var(--card);border:1px solid var(--line);border-radius:13px;padding:15px;box-shadow:var(--shadow)}
+  .mcard.ph{border-left:3px solid var(--blue)} .mcard.gb{border-left:3px solid var(--pink)}
+  .mcard .hd{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;margin-bottom:4px}
+  .mcard .pn{font-size:14px;font-weight:800;letter-spacing:-.01em}
+  .mcard .vol{font-size:11px;color:var(--ink-2);font-weight:600}
+  .mrow{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:6px 0;border-top:1px solid var(--line-2);margin-top:6px}
+  .mrow:first-of-type{border-top:none;margin-top:8px}
+  .mrow .k{font-size:11.5px;color:var(--ink-2);font-weight:600;flex-shrink:0}
+  .mrow .v{font-size:12.5px;text-align:right;font-weight:600}
+  .mgrid{display:grid;grid-template-columns:1fr 1fr;gap:6px 10px;margin-top:8px}
+  .mgrid .cell{background:#fafbfc;border-radius:8px;padding:7px 9px}
+  .mgrid .cell .ck{font-size:10px;color:var(--ink-2);font-weight:700;margin-bottom:3px}
+  .mgrid .cell .cv{font-size:11.5px;font-weight:600;display:flex;align-items:center;gap:5px;flex-wrap:wrap}
+  .progrow{display:flex;align-items:center;gap:9px;margin:10px 0 4px}
+  .progbar{flex:1;height:6px;background:var(--gray-soft);border-radius:20px;overflow:hidden}
+  .progbar i{display:block;height:100%;border-radius:20px}
+  .progpct{font-size:14px;font-weight:800;min-width:38px;text-align:right}
+  .lgroup{margin-bottom:18px}
+  .lgroup-h{display:flex;align-items:center;gap:7px;font-size:11.5px;font-weight:800;margin:6px 0 10px;letter-spacing:.02em}
+  .lgroup-h .dotc{width:9px;height:9px;border-radius:3px}
+  .lgroup-h.ph{color:var(--blue)} .lgroup-h.ph .dotc{background:var(--blue)}
+  .lgroup-h.gb{color:var(--pink)} .lgroup-h.gb .dotc{background:var(--pink)}
+
+  /* 진행현황 트랙 */
+  .tracks{margin-top:10px;border-top:1px solid var(--line-2)}
+  .track{border-bottom:1px solid var(--line-2)}
+  .track-main{display:flex;align-items:center;gap:11px;padding:10px 2px}
+  .track.expandable .track-main{cursor:pointer}
+  .track .tname{font-size:12.5px;font-weight:700;min-width:78px}
+  .track .tmemo{flex:1;font-size:11.5px;color:var(--ink-2);text-align:right;line-height:1.35}
+  .track .caret{width:16px;text-align:center;color:var(--ink-3);font-size:11px;transition:.2s;flex-shrink:0}
+  .track.open .caret{transform:rotate(90deg)}
+  .subwrap{max-height:0;overflow:hidden;transition:max-height .25s ease}
+  .track.open .subwrap{max-height:600px}
+  .subgrid{padding:4px 0 12px;display:grid;grid-template-columns:1fr 1fr;gap:6px}
+  .sub-item{background:#fafbfc;border-radius:8px;padding:7px 9px;display:flex;justify-content:space-between;align-items:center;gap:6px}
+  .sub-item .si-k{font-size:10.5px;color:var(--ink-2);font-weight:700}
+  .flow-note{font-size:10.5px;color:var(--violet);background:var(--violet-soft);border-radius:7px;padding:6px 9px;margin:2px 0 10px;font-weight:600;line-height:1.4}
+  /* 진행현황 세로선/인라인 메모 */
+  .vtable th.vline, .vtable td.vline{border-left:1px solid var(--line)}
+  .vtable td, .vtable th{border-right:1px solid var(--line-2)}
+  .track .tval{flex:1;text-align:right;font-size:12px}
+  .tmemo-inline{font-size:11.5px;color:var(--ink-2);font-weight:600}
+  .tmemo-inline.dim{color:var(--ink-3)}
+  .track-main{border-left:2px solid var(--line);padding-left:10px}
+
+  /* ===== 파일 관리 ===== */
+  .folder-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:12px;margin-bottom:24px}
+  .folder{background:var(--card);border:1px solid var(--line);border-radius:13px;padding:16px;box-shadow:var(--shadow);cursor:pointer;transition:.12s}
+  .folder:hover{box-shadow:var(--shadow-lg);transform:translateY(-1px)}
+  .folder .fico{width:40px;height:34px;border-radius:8px;background:linear-gradient(135deg,#5aa9f0,#3b82f6);position:relative;margin-bottom:12px}
+  .folder .fico::before{content:"";position:absolute;top:-4px;left:6px;width:16px;height:6px;border-radius:3px 3px 0 0;background:#5aa9f0}
+  .folder.c-pink .fico{background:linear-gradient(135deg,#f472b6,#db2777)} .folder.c-pink .fico::before{background:#f472b6}
+  .folder.c-amber .fico{background:linear-gradient(135deg,#fbbf24,#d97706)} .folder.c-amber .fico::before{background:#fbbf24}
+  .folder.c-violet .fico{background:linear-gradient(135deg,#a78bfa,#7c3aed)} .folder.c-violet .fico::before{background:#a78bfa}
+  .folder.c-teal .fico{background:linear-gradient(135deg,#2dd4bf,#0d9488)} .folder.c-teal .fico::before{background:#2dd4bf}
+  .folder .fname{font-size:13px;font-weight:800}
+  .folder .fmeta{font-size:11px;color:var(--ink-2);margin-top:3px;font-weight:600}
+  .file-row{display:flex;align-items:center;gap:12px;padding:12px 14px;border-bottom:1px solid var(--line-2)}
+  .file-row:last-child{border-bottom:none}
+  .file-row .fchk{width:18px;height:18px;border-radius:5px;border:1.5px solid var(--line);flex-shrink:0;display:flex;align-items:center;justify-content:center}
+  .file-row .fchk.on{background:var(--brand);border-color:var(--brand);color:#fff;font-size:11px}
+  .file-row .ftype{width:30px;height:30px;border-radius:7px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;color:#fff}
+  .ft-pdf{background:#e2483d} .ft-doc{background:#2563eb} .ft-xls{background:#16a34a} .ft-img{background:#7c3aed} .ft-lnk{background:#0d9488}
+  .file-row .finfo{flex:1;min-width:0}
+  .file-row .fn{font-size:12.5px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .file-row .fm{font-size:11px;color:var(--ink-2);margin-top:1px}
+  .file-row .fby{display:flex;align-items:center;gap:6px;flex-shrink:0}
+  .file-row .fav{width:24px;height:24px;border-radius:50%;background:var(--brand-soft);color:var(--brand);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:800}
+  .file-row .fdate{font-size:11px;color:var(--ink-2);min-width:88px;text-align:right;flex-shrink:0}
+  .addbtn{display:inline-flex;align-items:center;gap:6px;background:var(--brand);color:#fff;border:none;font-size:12px;font-weight:700;padding:8px 14px;border-radius:9px}
+  .addbtn:hover{background:#1d4fd7}
+  .folder.sel{outline:2px solid var(--brand);outline-offset:-2px;box-shadow:var(--shadow-lg)}
+  .fpreview{width:34px;height:34px;border:1px solid var(--line);background:var(--card);border-radius:9px;font-size:15px;flex-shrink:0;display:flex;align-items:center;justify-content:center}
+  .fpreview:hover{background:var(--bg);border-color:var(--brand)}
+  /* 모달 */
+  .modal{display:none;position:fixed;inset:0;background:rgba(20,26,46,.5);z-index:200;align-items:center;justify-content:center;padding:20px}
+  .modal.show{display:flex;animation:fade .18s ease}
+  .modal-box{background:var(--card);border-radius:16px;width:100%;max-width:480px;box-shadow:var(--shadow-lg);overflow:hidden}
+  .modal-head{display:flex;align-items:center;justify-content:space-between;padding:15px 18px;border-bottom:1px solid var(--line);font-size:14px;font-weight:800}
+  .modal-x{width:30px;height:30px;border:none;background:var(--gray-soft);border-radius:8px;font-size:13px;color:var(--ink-2)}
+  .modal-x:hover{background:var(--line)}
+  .modal-body{padding:18px}
+  .pv-file{display:flex;align-items:center;gap:13px;margin-bottom:16px}
+  .pv-name{font-size:14px;font-weight:800;line-height:1.35}
+  .pv-meta{font-size:11.5px;color:var(--ink-2);margin-top:3px;font-weight:600}
+  .pv-holder{background:var(--bg);border:1.5px dashed var(--line);border-radius:12px;padding:34px 20px;text-align:center}
+  .pv-holder-ic{font-size:34px}
+  .pv-holder-t{font-size:13px;font-weight:800;margin-top:10px}
+  .pv-holder-m{font-size:11.5px;color:var(--ink-2);margin-top:8px;line-height:1.6;font-weight:500}
+
+  /* 모바일 하단 탭바 */
+  .tabbar{display:none}
+  .scrim{display:none}
+
+  /* ===== 반응형 ===== */
+  @media(max-width:1080px){
+    .content{grid-template-columns:1fr}
+    .rail{border-left:none;border-top:1px solid var(--line);background:transparent;padding:8px 22px 40px}
+    .kpis{grid-template-columns:repeat(2,1fr)}
+  }
+  @media(max-width:720px){
+    .app{grid-template-columns:1fr}
+    .cards{grid-template-columns:1fr}
+    .sidebar{transform:translateX(-100%);box-shadow:var(--shadow-lg)}
+    .sidebar.open{transform:translateX(0)}
+    .main{grid-column:1}
+    .hamburger{display:flex}
+    .header .hsearch{width:auto;flex:1}
+    .panel-main{padding:16px 15px 90px}
+    .rail{padding:8px 15px 90px}
+    .kpis{grid-template-columns:repeat(2,1fr);gap:9px}
+    .kpi{padding:13px}
+    .kpi .kn{font-size:22px}
+    .page-h .pt{font-size:18px}
+    .scrim.show{display:block;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:55}
+    /* 하단 탭바 */
+    .tabbar{display:flex;position:fixed;bottom:0;left:0;right:0;height:60px;background:var(--card);
+      border-top:1px solid var(--line);z-index:50;padding-bottom:env(safe-area-inset-bottom)}
+    .tabbar button{flex:1;border:none;background:transparent;display:flex;flex-direction:column;align-items:center;
+      justify-content:center;gap:3px;color:var(--ink-3);font-size:10px;font-weight:700}
+    .tabbar button.active{color:var(--brand)}
+    .tabbar button .ico{width:20px;height:20px;stroke-width:2}
+    .mgrid{grid-template-columns:1fr 1fr}
+  }
+</style>
+</head>
+<body>
+<!-- 암호 잠금 화면 -->
+<div id="lockScreen" style="position:fixed;inset:0;z-index:9999;background:linear-gradient(135deg,#eef2f7,#e3e9f2);display:flex;align-items:center;justify-content:center;font-family:'Pretendard',-apple-system,sans-serif">
+  <div style="background:#fff;padding:36px 32px;border-radius:20px;box-shadow:0 12px 48px rgba(0,0,0,.12);width:min(340px,88vw);text-align:center">
+    <div style="width:52px;height:52px;background:linear-gradient(135deg,#3b6fd4,#5b8def);border-radius:14px;display:flex;align-items:center;justify-content:center;margin:0 auto 18px;color:#fff;font-weight:800;font-size:22px">F</div>
+    <div style="font-weight:800;font-size:17px;color:#1a2233;margin-bottom:6px">FIORESE 워크스페이스</div>
+    <div style="font-size:13px;color:#7a869a;margin-bottom:20px">암호를 입력하세요</div>
+    <input id="lockInput" type="password" placeholder="암호" style="width:100%;box-sizing:border-box;padding:12px 14px;border:1.5px solid #d8e0ea;border-radius:11px;font-size:15px;outline:none;text-align:center;margin-bottom:10px" autocomplete="off">
+    <div id="lockError" style="color:#d0463b;font-size:12px;font-weight:700;height:16px;margin-bottom:8px"></div>
+    <button id="lockBtn" style="width:100%;padding:12px;background:linear-gradient(135deg,#3b6fd4,#5b8def);color:#fff;border:none;border-radius:11px;font-size:15px;font-weight:700;cursor:pointer">열기</button>
+  </div>
+</div>
+<script>
+(function(){
+  // ===== 암호 설정 (여기 글자만 바꾸면 암호가 바뀝니다) =====
+  var PASSWORD = "24686812^";
+  // =====================================================
+  var KEY = "fiorese_unlocked";
+  function unlock(){
+    document.getElementById("lockScreen").style.display="none";
+    try{ sessionStorage.setItem(KEY,"1"); }catch(e){}
+  }
+  // 이미 이번 세션에 풀었으면 통과
+  try{ if(sessionStorage.getItem(KEY)==="1"){ unlock(); } }catch(e){}
+  function tryUnlock(){
+    var v=document.getElementById("lockInput").value;
+    if(v===PASSWORD){ unlock(); }
+    else{
+      document.getElementById("lockError").textContent="암호가 맞지 않습니다";
+      document.getElementById("lockInput").value="";
+    }
+  }
+  document.addEventListener("DOMContentLoaded",function(){
+    var btn=document.getElementById("lockBtn");
+    var inp=document.getElementById("lockInput");
+    if(btn) btn.addEventListener("click",tryUnlock);
+    if(inp){ inp.addEventListener("keydown",function(e){ if(e.key==="Enter") tryUnlock(); }); inp.focus(); }
+  });
+})();
+</script>
+<div class="scrim" id="scrim"></div>
+<div class="app">
+  <!-- 사이드바 -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sb-brand">
+      <div class="sb-logo">F</div>
+      <div><div class="bt">FIORESE</div><div class="bs">상품기획 워크스페이스</div></div>
+    </div>
+    <nav class="sb-nav" id="sbNav"></nav>
+    <div class="sb-foot">샘플 · 2026 상반기<br>⚠ 원가 등 민감정보 · 공개 금지</div>
+  </aside>
+
+  <!-- 메인 -->
+  <div class="main">
+    <header class="header">
+      <button class="hamburger" id="hamburger" aria-label="메뉴">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+      </button>
+      <div class="htitle" id="hTitle">대시보드</div>
+      <div class="hspacer"></div>
+      <button class="hicon" id="notifBtn" aria-label="알림"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg><span class="ndot" id="notifDot" style="display:none"></span></button>
+    </header>
+    <div class="notif-panel" id="notifPanel"></div>
+
+    <div class="content" id="content">
+      <div class="panel-main">
+        <section id="dash" class="active"></section>
+        <section id="today"></section>
+        <section id="weekly"></section>
+        <section id="productinfo"></section>
+        <section id="progress"></section>
+        <section id="clinical"></section>
+        <section id="cert"></section>
+        <section id="cost"></section>
+        <section id="order"></section>
+        <section id="tm"></section>
+        <section id="trend"></section>
+        <section id="ingredient"></section>
+        <section id="files"></section>
+      </div>
+      <aside class="rail" id="rail"></aside>
+    </div>
+  </div>
+</div>
+
+<!-- 파일 미리보기 모달 -->
+<div class="modal" id="previewModal">
+  <div class="modal-box">
+    <div class="modal-head"><span>파일 미리보기</span><button class="modal-x" id="previewClose">✕</button></div>
+    <div class="modal-body" id="previewBody"></div>
+  </div>
+</div>
+
+<div class="modal" id="ingModal">
+  <div class="modal-box ing-box">
+    <div class="modal-head"><div><div id="ingTitle" style="font-weight:800">전성분</div><div id="ingSub" style="font-size:11.5px;color:var(--ink-3);font-weight:600;margin-top:2px"></div></div><button class="modal-x" id="ingClose">✕</button></div>
+    <div class="modal-body">
+      <div class="ing-sec-h">국문 전성분</div>
+      <div class="ing-text" id="ingKor"></div>
+      <div class="ing-sec-h" style="margin-top:16px">영문 전성분 (INCI)</div>
+      <div class="ing-text" id="ingEng"></div>
+    </div>
+  </div>
+</div>
+
+<div class="modal" id="trendModal">
+  <div class="modal-box ing-box">
+    <div class="modal-head">
+      <div style="display:flex;align-items:center;gap:8px"><span class="tag" id="trendCat">규제</span><span id="trendDate" style="font-size:11.5px;color:var(--ink-3);font-weight:700"></span></div>
+      <button class="modal-x" id="trendClose">✕</button>
+    </div>
+    <div class="modal-body">
+      <div id="trendTitle" style="font-size:15px;font-weight:800;line-height:1.45;margin-bottom:12px"></div>
+      <div class="ing-text" id="trendBody" style="line-height:1.75"></div>
+      <div id="trendSrc" style="font-size:11.5px;color:var(--ink-3);font-weight:700;margin-top:14px"></div>
+      <a id="trendLink" href="#" target="_blank" rel="noopener" class="trend-link">🔗 기사 원문 보기</a>
+    </div>
+  </div>
+</div>
+
+<div class="modal" id="itemEditModal">
+  <div class="modal-box">
+    <div class="modal-head"><span id="itemEditTitle" style="font-weight:800">항목 수정</span><button class="modal-x" id="itemEditClose">✕</button></div>
+    <div class="modal-body">
+      <div class="fieldrow"><label class="flbl">내용</label><input id="itemEditT" class="tinput" style="width:100%" placeholder="업무 내용"></div>
+      <div class="fieldrow"><label class="flbl">메모</label><input id="itemEditM" class="tinput" style="width:100%" placeholder="메모"></div>
+      <div class="modal-actions">
+        <button class="addbtn" id="itemEditSave">저장</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 모바일 하단 탭바 -->
+<nav class="tabbar" id="tabbar"></nav>
+
+<script>
+/* ============================================================
+   구글 시트 연동 (창고 = 구글 시트 / 창고지기 = 앱스 스크립트)
+============================================================ */
+const SHEET_URL = "https://script.google.com/macros/s/AKfycbxZ9znBPVoxe5C-6aTQw-I6b6e2oh9pYrHogZFZ2Gu0oIOrikBi58UHF_LwhDmZemCA/exec";
+
+// 시트에 저장할 데이터 열쇠 목록 (localStorage 키와 동일)
+const SYNC_KEYS = [
+  "fiorese_productinfo","fiorese_clinical","fiorese_products","fiorese_cert",
+  "fiorese_cost","fiorese_order","fiorese_tm","fiorese_checks","fiorese_notifs",
+  "fiorese_weekly","fiorese_trend","fiorese_ingredient"
+];
+// 금일 업무는 날짜별 키라 별도 처리 (오늘 것만)
+function todayKeyForSync(){const d=new Date();return "fiorese_today_"+d.getFullYear()+"-"+(d.getMonth()+1)+"-"+d.getDate();}
+
+let sheetSyncTimer = null;
+let sheetLoaded = false;
+
+// 시트에서 전체 데이터 불러와 localStorage에 넣기 (켤 때 1회)
+async function loadFromSheet(){
+  try{
+    const res = await fetch(SHEET_URL);
+    const text = await res.text();
+    const all = JSON.parse(text || "{}");
+    if(all && typeof all === "object"){
+      Object.keys(all).forEach(k=>{
+        try{ localStorage.setItem(k, all[k]); }catch(e){}
+      });
+      sheetLoaded = true;
+    }
+  }catch(e){
+    console.log("시트 불러오기 실패(오프라인일 수 있음):", e);
+  }
+}
+
+// localStorage의 모든 fiorese_ 데이터를 모아 시트로 저장 (변경 후 잠시 뒤)
+function saveToSheet(){
+  if(sheetSyncTimer) clearTimeout(sheetSyncTimer);
+  sheetSyncTimer = setTimeout(async ()=>{
+    const all = {};
+    const keys = SYNC_KEYS.concat([todayKeyForSync()]);
+    keys.forEach(k=>{
+      const v = localStorage.getItem(k);
+      if(v !== null) all[k] = v;
+    });
+    try{
+      await fetch(SHEET_URL, {
+        method:"POST",
+        body: JSON.stringify(all)
+      });
+      showSyncBadge("saved");
+    }catch(e){
+      console.log("시트 저장 실패:", e);
+      showSyncBadge("error");
+    }
+  }, 1200); // 1.2초 모아서 한 번에 저장
+}
+
+// 저장 상태 작은 표시
+function showSyncBadge(state){
+  let b = document.getElementById("syncBadge");
+  if(!b){
+    b = document.createElement("div");
+    b.id = "syncBadge";
+    b.style.cssText = "position:fixed;bottom:16px;right:16px;z-index:200;font-size:12px;font-weight:700;padding:8px 14px;border-radius:20px;box-shadow:0 4px 16px rgba(0,0,0,.15);transition:.2s;pointer-events:none";
+    document.body.appendChild(b);
+  }
+  if(state==="saved"){ b.textContent="✓ 클라우드 저장됨"; b.style.background="#e7f6ec"; b.style.color="#12833d"; }
+  else if(state==="saving"){ b.textContent="⟳ 저장 중..."; b.style.background="#eef2ff"; b.style.color="#2563eb"; }
+  else { b.textContent="⚠ 저장 실패 (인터넷 확인)"; b.style.background="#fdeaea"; b.style.color="#c0392b"; }
+  b.style.opacity="1";
+  clearTimeout(b._t);
+  b._t = setTimeout(()=>{ b.style.opacity="0"; }, 2500);
+}
+
+/* ===== 데이터 ===== */
+/* ===== 제품 정보 (마스터 파일 기준) ===== */
+const productInfoDefault=[
+  {line:"ph",code:"F-11",name:"퓨어 하이드라 워터 토너",vol:"155ml",cat:"토너",lab:"ASUS250812-4A",key:"11종 히알루론산, 어성초, 센텔라",eff:"민감성 저자극  /  수분 레이어드 +34.26%  |  유수분밸런스 +108.42% · 피부 진정 15.77%  |  쿨링 19.78%",vegan:true,cpnp:true,mocra:true,kor:"정제수, 부틸렌글라이콜, 프로판다이올, 1,2-헥산다이올, 나이아신아마이드, 글리세린, 트레할로오스, 에틸헥실글리세린, 카보머, 아데노신, 알지닌, 소듐시트레이트, 다이소듐이디티에이, 시트릭애씨드, 인도멀구슬나무잎추출물, 인도멀구슬나무꽃추출물, 아이비고드열매추출물, 소듐하이알루로네이트, 알로에베라꽃추출물, 가지열매추출물, 홀리바질잎추출물, 참산호말추출물, 울금뿌리추출물, 병풀추출물, 하이알루로닉애씨드, 하이드롤라이즈드하이알루로닉애씨드, 하이드롤라이즈드소듐하이알루로네이트, 하이드록시프로필트라이모늄하이알루로네이트, 포타슘하이알루로네이트, 소듐하이알루로네이트크로스폴리머, 약모밀추출물, 펜틸렌글라이콜, 소듐아세틸레이티드하이알루로네이트",eng:"Water, Butylene Glycol, Propanediol, 1,2-Hexanediol, Niacinamide, Glycerin, Trehalose, Ethylhexylglycerin, Carbomer, Adenosine, Arginine, Sodium Citrate, Disodium EDTA, Citric Acid, Melia Azadirachta Leaf Extract, Melia Azadirachta Flower Extract, Coccinia Indica Fruit Extract, Sodium Hyaluronate, Aloe Barbadensis Flower Extract, Solanum Melongena (Eggplant) Fruit Extract, Ocimum Sanctum Leaf Extract, Corallina Officinalis Extract, Curcuma Longa (Turmeric) Root Extract, Centella Asiatica Extract, Hyaluronic Acid, Hydrolyzed Hyaluronic Acid, Hydrolyzed Sodium Hyaluronate, Hydroxypropyltrimonium Hyaluronate, Potassium Hyaluronate, Sodium Hyaluronate Crosspolymer, Houttuynia Cordata Extract, Pentylene Glycol, Sodium Acetylated Hyaluronate"},
+  {line:"ph",code:"F-03",name:"퓨어 하이드라 워터 세럼",vol:"50ml",cat:"세럼",lab:"ES1618-ADA",key:"히알루론산, 판테놀, 센텔라",eff:"민감성 저자극  /  보습(수분량) +84.31%  |  속수분 +17.30%  /  즉가 진정 12.18%",vegan:true,cpnp:true,mocra:true,kor:"정제수, 부틸렌글라이콜, 다이프로필렌글라이콜, 1,2-헥산다이올, 나이아신아마이드, 글리세린, 다이에톡시에틸석시네이트, 글리세레스-26, 카보머, 폴리글리세릴-10라우레이트, 프로판다이올, 베타인, 판테놀, 암모늄아크릴로일다이메틸타우레이트/브이피코폴리머, 에틸헥실글리세린, 트로메타민, 아데노신, 인도멀구슬나무잎추출물, 다이소듐이디티에이, 인도멀구슬나무꽃추출물, 아이비고드열매추출물, 병풀추출물, 우엉뿌리추출물, 진흙버섯추출물, 쇠비름추출물, 알로에베라꽃추출물, 가지열매추출물, 마트리카리아꽃추출물, 체이스트트리추출물, 홀리바질잎추출물, 소듐하이알루로네이트, 참산호말추출물, 울금뿌리추출물",eng:"Water(Aqua), Butylene Glycol, Dipropylene Glycol, 1,2-Hexanediol, Niacinamide, Glycerin, Diethoxyethyl Succinate, Glycereth-26, Carbomer, Polyglyceryl-10 Laurate, Propanediol, Betaine, Panthenol, Ammonium Acryloyldimethyltaurate/VP Copolymer, Ethylhexylglycerin, Tromethamine, Adenosine, Melia Azadirachta Leaf Extract, Disodium EDTA, Melia Azadirachta Flower Extract, Coccinia Indica Fruit Extract, Centella Asiatica Extract, Arctium Lappa Root Extract, Phellinus Linteus Extract, Portulaca Oleracea Extract, Aloe Barbadensis Flower Extract, Solanum Melongena (Eggplant) Fruit Extract, Chamomilla Recutita (Matricaria) Flower Extract, Vitex Agnus-Castus Extract, Ocimum Sanctum Leaf Extract, Sodium Hyaluronate, Corallina Officinalis Extract, Curcuma Longa (Turmeric) Root Extract"},
+  {line:"ph",code:"F-04",name:"퓨어 하이드라 워터 세럼",vol:"100ml",cat:"세럼",lab:"ES1618-ADA",key:"히알루론산, 판테놀, 센텔라",eff:"민감성 저자극  /  보습(수분량) +84.31%  |  속수분 +17.30%  /  즉각 진정 12.18%",vegan:true,cpnp:true,mocra:true,kor:"",eng:""},
+  {line:"ph",code:"F-05",name:"퓨어 하이드라 워터 크림",vol:"50ml",cat:"크림",lab:"CR1253-DAB",key:"10종 히알루론산, 판테놀, 센텔라",eff:"민감성 저자극  /  보습(수분량) +81.39%  |  속수분 +15.97%  /  즉각 진정 11.35%",vegan:true,cpnp:true,mocra:true,kor:"정제수, 글리세린, 프로판다이올, 사이클로헥사실록세인, 나이아신아마이드, 글리세릴폴리메타크릴레이트, 아크릴레이트/C10-30알킬아크릴레이트크로스폴리머, 글리세릴글루코사이드, 하이드록시아세토페논, 트로메타민, 암모늄아크릴로일다이메틸타우레이트/브이피코폴리머, 소듐폴리아크릴레이트, 판테놀, 에틸헥실글리세린, 에틸헥실스테아레이트, 아데노신, 1,2-헥산다이올, 인도멀구슬나무잎추출물, 알란토인, 다이소듐이디티에이, 인도멀구슬나무꽃추출물, 병풀추출물,  트라이데세스-6, 아이비고드열매추출물, 소듐하이알루로네이트, 부틸렌글라이콜, C11-13아이소파라핀, 알로에베라꽃추출물, 가지열매추출물, 홀리바질잎추출물, 참산호말추출물, 울금뿌리추출물, 다이메틸실란올하이알루로네이트, 하이드롤라이즈드하이알루로닉애씨드, 하이드롤라이즈드소듐하이알루로네이트, 하이알루로닉애씨드, 포타슘하이알루로네이트, 하이드록시프로필트라이모늄하이알루로네이트, 소듐하이알루로네이트크로스폴리머, 소듐하이알루로네이트다이메틸실란올, 소듐아세틸레이티드하이알루로네이트",eng:"Water(Aqua), Glycerin, Propanediol, Cyclohexasiloxane, Niacinamide, Glyceryl Polymethacrylate, Acrylates/C10-30 Alkyl Acrylate Crosspolymer, Glyceryl Glucoside, Hydroxyacetophenone, Tromethamine, Ammonium Acryloyldimethyltaurate/VP Copolymer, Sodium Polyacrylate, Panthenol, Ethylhexylglycerin, Ethylhexyl Stearate, Adenosine, 1,2-Hexanediol, Melia Azadirachta Leaf Extract, Allantoin, Disodium EDTA, Melia Azadirachta Flower Extract, Centella Asiatica Extract, Trideceth-6, Coccinia Indica Fruit Extract, Sodium Hyaluronate, Butylene Glycol, C11-13 Isoparaffin, Aloe Barbadensis Flower Extract, Solanum Melongena (Eggplant) Fruit Extract, Ocimum Sanctum Leaf Extract, Corallina Officinalis Extract, Curcuma Longa (Turmeric) Root Extract, Dimethylsilanol Hyaluronate, Hydrolyzed Hyaluronic Acid, Hydrolyzed Sodium Hyaluronate, Hyaluronic Acid, Potassium Hyaluronate, Hydroxypropyltrimonium Hyaluronate, Sodium Hyaluronate Crosspolymer, Sodium Hyaluronate Dimethylsilanol, Sodium Acetylated Hyaluronate"},
+  {line:"ph",code:"F-13",name:"퓨어 하이드라 블루 PDRN 클렌저",vol:"125ml",cat:"클렌저",lab:"26011511 #3-KHA",key:"히알루론산, PDRN, PHA, LHA",eff:"민감성 저자극  /  미세먼지 세정 98.61%  |  자외선차단제 세정 97.94%  |  메이크업 세정 96.83%  /  24h 수분유지(1회) 60.24%  |  24h 후 25.99%",vegan:false,cpnp:false,mocra:false,kor:"",eng:""},
+  {line:"ph",code:"-",name:"퓨어 하이드라 PDRN 선스크린",vol:"50ml",cat:"선케어",lab:"SCS251013A-5A",key:"히알루론산, 쌀 PDRN, 마데카소사이드",eff:"민감성 저자극  /  자외선에 의한 자극(붉은기) 진정 효과 · 자외선에 의한 손상된 피부 장벽(경피수분손실량 개선) · 피부 보습 개선 및 72시간 보습 지속",vegan:false,cpnp:false,mocra:false,kor:"",eng:""},
+  {line:"ph",code:"F-14",name:"퓨어 하이드라 PDRN 플러스 선스크린",vol:"50ml",cat:"선케어",lab:"SCS251013A-5B",key:"히알루론산, 쌀 PDRN, 펩타이드",eff:"민감성 저자극  /  자외선에 의한 자극(붉은기) 진정 효과 · 자외선에 의한 손상된 피부 장벽(경피수분손실량 개선) · 피부 보습 개선 및 72시간 보습 지속",vegan:false,cpnp:false,mocra:false,kor:"",eng:""},
+  {line:"gb",code:"F-12",name:"톤업 핏 글로우 토너",vol:"155ml",cat:"토너",lab:"SL1583-BCA",key:"나이아신아마이드, 트라넥삼산, 세라마이드",eff:"민감성 저자극  /  피부 밝기(톤) 개선 0.99%  /  피부 광채 윤기 개선 14.43%  /  피부결(거칠기) 개선 8.45%  /  피부 층별 수분 레이어드 효과 36.90%  /  피부 투명도(맑기) 4.55%  /  피부 유분(피지)분비 조절 20.37%  /  색소침착 개선 28.48%",vegan:true,cpnp:false,mocra:false,kor:"정제수, 나이아신아마이드, 글리세린, 세틸에틸헥사노에이트, 부틸렌글라이콜, 카프릴릭/카프릭트라이글리세라이드, 1,2-헥산다이올, 펜타에리스리틸테트라에틸헥사노에이트, 글리세릴스테아레이트, 베타인, 폴리글리세릴-10라우레이트, 폴리글리세릴-2스테아레이트, 스테아릴알코올, 트라넥사믹애씨드, 아크릴레이트/C10-30알킬아크릴레이트크로스폴리머, 알란토인, 트로메타민, 에틸헥실글리세린, 아데노신, 다이소듐이디티에이, 사이아노코발아민, 세라마이드엔피, 아스코빅애씨드",eng:"Water, Niacinamide, Glycerin, Cetyl Ethylhexanoate, Butylene Glycol, Caprylic/Capric Triglyceride, 1,2-Hexanediol, Pentaerythrityl Tetraethylhexanoate, Glyceryl Stearate, Betaine, Polyglyceryl-10 Laurate, Polyglyceryl-2 Stearate, Stearyl Alcohol, Tranexamic Acid, Acrylates/C10-30 Alkyl Acrylate Crosspolymer, Allantoin, Tromethamine, Ethylhexylglycerin, Adenosine, Disodium EDTA, Cyanocobalamin, Ceramide NP, Ascorbic Acid"},
+  {line:"gb",code:"F-08",name:"퀸스 글로우 토닝 에센스",vol:"50ml",cat:"에센스",lab:"ES1649-ABA",key:"나이아신아마이드, 모과추출물, 판테놀",eff:"민감성 저자극  /  광채(윤기) +34.22%  |  색소침착 개선 18.56% · 피부결 개선 8.58%  |  피부톤 밝기 +5.48%",vegan:true,cpnp:true,mocra:true,kor:"정제수, 글리세린, 1,2-헥산다이올, 나이아신아마이드, 글리세레스-26, 판테놀, 부틸렌글라이콜, 아크릴레이트/C10-30알킬아크릴레이트크로스폴리머, 알지닌, 에틸헥실글리세린, 알란토인, 아데노신, 모과추출물, 소듐파이테이트, 병풀추출물, 우엉뿌리추출물, 진흙버섯추출물, 쇠비름추출물, 체이스트트리추출물, 마트리카리아꽃추출물",eng:"Water(Aqua), Glycerin, 1,2-Hexanediol, Niacinamide, Glycereth-26, Panthenol, Butylene Glycol, Acrylates/C10-30 Alkyl Acrylate Crosspolymer, Arginine, Ethylhexylglycerin, Allantoin, Adenosine, Chaenomeles Sinensis Fruit Extract, Sodium Phytate, Centella Asiatica Extract, Arctium Lappa Root Extract, Phellinus Linteus Extract, Portulaca Oleracea Extract, Vitex Agnus-Castus Extract, Chamomilla Recutita (Matricaria) Flower Extract"},
+  {line:"gb",code:"F-09",name:"딥 스킨 배리어 크림",vol:"50ml",cat:"크림",lab:"CR13121-AB",key:"나이아신아마이드, 히알루론산, 세라마이드",eff:"민감성 저자극  /  피부 장벽 개선 +43.34%  |  색소침착 개선 22.03% · 진정효과 25.09%  |  경피수분손실 개선 17.68%",vegan:true,cpnp:true,mocra:true,kor:"정제수, 글리세린, 카프릴릭/카프릭트라이글리세라이드, 마카다미아씨오일, 메틸프로판다이올, 나이아신아마이드, 비닐다이메티콘, 부틸렌글라이콜, 폴리글리세릴-3메틸글루코오스다이스테아레이트, 합성비즈왁스, 세테아릴올리베이트, 자일리틸글루코사이드, 솔비탄올리베이트, 알지닌, 아크릴레이트/C10-30알킬아크릴레이트크로스폴리머, 안하이드로자일리톨, 하이드록시아세토페논, 세틸에틸헥사노에이트, 카프릴릴글라이콜, 자일리톨, 폴리글리세릴-4올리에이트, 에틸헥실글리세린, 하이드로제네이티드레시틴, 1,2-헥산다이올, 아데노신, 다이소듐이디티에이, 세라마이드엔피, 사이아노코발아민, 바오밥나무씨오일, 세라마이드에이에스, 세라마이드엔에스, 세라마이드에이피, 세라마이드이오피, 소듐하이알루로네이트",eng:"Water(Aqua), Glycerin, Caprylic/Capric Triglyceride, Macadamia Ternifolia Seed Oil, Methylpropanediol, Niacinamide, Vinyl Dimethicone, Butylene Glycol, Polyglyceryl-3 Methylglucose Distearate, Synthetic Beeswax, Cetearyl Olivate, Xylitylglucoside, Sorbitan Olivate, Arginine, Acrylates/C10-30 Alkyl Acrylate Crosspolymer, Anhydroxylitol, Hydroxyacetophenone, Cetyl Ethylhexanoate, Caprylyl Glycol, Xylitol, Polyglyceryl-4 Oleate, Ethylhexylglycerin, Hydrogenated Lecithin, 1,2-Hexanediol, Adenosine, Disodium EDTA, Ceramide NP, Cyanocobalamin, Adansonia Digitata Seed Oil, Ceramide AS, Ceramide NS, Ceramide AP, Ceramide EOP, Sodium Hyaluronate"},
+];
+function piKey(){return "fiorese_productinfo";}
+function loadPi(){ try{const s=localStorage.getItem(piKey());if(s)return JSON.parse(s);}catch(e){} return JSON.parse(JSON.stringify(productInfoDefault)); }
+function savePi(){ try{localStorage.setItem(piKey(),JSON.stringify(productInfo));}catch(e){} saveToSheet(); }
+let productInfo=loadPi();
+
+const clinicalDefault=[
+  {id:"CL-01",title:"3종 스킨케어 병행 임상 (피부 1차 자극)",item:"피부 1차 자극 시험",lab:"KSRC",status:["done","완료"],start:"2026.02.10",kor:"2026.03.20",eng:"2026.04.14",doc:"3종 스킨케어 임상계획서.docx",
+    products:["퓨어 하이드라 워터 토너","퓨어 하이드라 워터 세럼","퓨어 하이드라 워터 크림"],result:"저자극 판정 · 영문 리포트 수령"},
+  {id:"CL-02",title:"블루 PDRN 클렌저 유효성 시험",item:"유효성 시험",lab:"KSRC",status:["prog","진행중"],start:"2026.03.05",kor:"-",eng:"-",doc:"블루 클렌저 임상계획서.docx",
+    products:["퓨어 하이드라 블루 PDRN 클렌저"],result:"유효성 영문 리포트 대기"},
+  {id:"CL-03",title:"PDRN 선스크린 저자극 시험",item:"저자극 시험",lab:"대한피부과학연구소",status:["prog","진행중"],start:"2026.03.12",kor:"-",eng:"-",doc:"PDRN 선스크린 임상계획서.docx",
+    products:["퓨어 하이드라 PDRN 선스크린"],result:"저자극 영문 리포트 진행중"},
+  {id:"CL-04",title:"PDRN 플러스 선스크린 유효성 시험",item:"유효성(피지 개선 등) 시험",lab:"휴먼피부임상시험센터",status:["done","완료"],start:"2026.03.05",kor:"2026.03.05",eng:"-",doc:"HM-R26-0079 결과보고서.pdf",
+    products:["퓨어 하이드라 PDRN 플러스 선스크린"],result:"즉각 피지개선 외 시험 · 국문 결과보고서 수령(HM-R26-0079)"},
+  {id:"CL-05",title:"톤업 핏 글로우 토너 인체적용 시험",item:"인체적용 시험",lab:"휴먼피부임상시험센터",status:["done","완료"],start:"2025.10.15",kor:"2025.12.10",eng:"2025.12.20",doc:"톤업 핏 글로우 토너 임상계획서.docx",
+    products:["톤업 핏 글로우 토너"],result:"완료 · 국문/영문 수령"},
+  {id:"CL-06",title:"퀸스 글로우 토닝 에센스 인체적용 시험",item:"인체적용 시험",lab:"휴먼피부임상시험센터",status:["done","완료"],start:"2025.10.15",kor:"2025.12.10",eng:"2025.12.20",doc:"퀸스 글로우 토닝 에센스 임상계획서.docx",
+    products:["퀸스 글로우 토닝 에센스"],result:"완료 · 국문/영문 수령"},
+  {id:"CL-07",title:"딥 스킨 배리어 크림 인체적용 시험",item:"인체적용 시험",lab:"휴먼피부임상시험센터",status:["done","완료"],start:"2025.10.15",kor:"2025.12.10",eng:"2025.12.20",doc:"딥 스킨 배리어 크림 임상계획서.docx",
+    products:["딥 스킨 배리어 크림"],result:"완료 · 국문/영문 수령"},
+  {id:"CL-08",title:"토너·세럼·젤크림 신규 임상 (견적 진행)",item:"신규 임상 견적",lab:"휴먼피부임상시험센터",status:["prog","진행중"],start:"2026.06.17",kor:"-",eng:"-",doc:"신규 임상 견적 문의.eml",
+    products:["신규 라인(토너/세럼/젤크림)"],result:"견적 협의중 (6월~)"},
+];
+function clinKey(){return "fiorese_clinical";}
+function loadClin(){ try{const s=localStorage.getItem(clinKey());if(s)return JSON.parse(s);}catch(e){} return JSON.parse(JSON.stringify(clinicalDefault)); }
+function saveClin(){ try{localStorage.setItem(clinKey(),JSON.stringify(clinicalStudies));}catch(e){} saveToSheet(); }
+let clinicalStudies=loadClin();
+function studyOf(productName){return clinicalStudies.find(s=>s.products.includes(productName));}
+
+/* ============================================================
+   제품 마스터 (진행 트랙)
+   디자인 트랙 = 문안 검수 하위 포함
+   문안 흐름: 1차기획 → 제조사확인 → CPNP/MoCRA등록업체확인 → 수정
+============================================================ */
+const productsDefault=[
+  {line:"ph",name:"퓨어 하이드라 워터 토너",vol:"155ml",
+    tracks:{기획:["done","컨셉·타깃 확정"],처방:["done","제조사 확정(그린코스/코스모코스)"],
+      디자인:["done","문안·디자인 완료"],임상:null,인증:["done","비건·CPNP·MoCRA 유효"],"부자재·발주":["done","F-11 발주완료"]},
+    mun:{"1차 문안 기획":["done","완료"],"제조사 확인":["done","완료"],"CPNP/MoCRA 확인":["done","완료"],"쇼피·상세":["done","완료"]}},
+  {line:"ph",name:"퓨어 하이드라 워터 세럼",vol:"50/100ml",
+    tracks:{기획:["done","확정"],처방:["done","메가코스/코스모코스"],
+      디자인:["warn","개선사항 전달 필요"],임상:null,인증:["risk","비건 만료"],"부자재·발주":["done","F-03/04 발주완료"]},
+    mun:{"1차 문안 기획":["done","완료"],"제조사 확인":["done","완료"],"CPNP/MoCRA 확인":["done","완료"],"쇼피·상세":["prog","팀장님 컨펌 대기"]}},
+  {line:"ph",name:"퓨어 하이드라 워터 크림",vol:"50ml",
+    tracks:{기획:["done","확정"],처방:["done","메가코스/코스모코스"],
+      디자인:["warn","개선사항 전달 필요"],임상:null,인증:["risk","비건 만료"],"부자재·발주":["done","F-05 발주완료"]},
+    mun:{"1차 문안 기획":["done","완료"],"제조사 확인":["done","완료"],"CPNP/MoCRA 확인":["done","완료"],"쇼피·상세":["prog","팀장님 컨펌 대기"]}},
+  {line:"ph",name:"퓨어 하이드라 블루 PDRN 클렌저",vol:"125ml",
+    tracks:{기획:["done","확정"],처방:["done","코스모코스"],
+      디자인:["warn","제조사·네모 문안 회신 대기"],임상:null,인증:["wait","임상 후 진행"],"부자재·발주":["prog","튜브 발주(F-13)"]},
+    mun:{"1차 문안 기획":["done","완료"],"제조사 확인":["warn","메일 회신 대기"],"CPNP/MoCRA 확인":["warn","(3/18) 요청"],"쇼피·상세":["wait","미착수"]}},
+  {line:"ph",name:"퓨어 하이드라 PDRN 선스크린",vol:"50ml",
+    tracks:{기획:["done","확정"],처방:["done","그린코스"],
+      디자인:["warn","수정중"],임상:null,인증:["wait","기능성 심사 예정"],"부자재·발주":["prog","튜브 발주(F-14)"]},
+    mun:{"1차 문안 기획":["done","완료"],"제조사 확인":["warn","메일 회신 대기"],"CPNP/MoCRA 확인":["warn","(3/6) 요청"],"쇼피·상세":["wait","미착수"]}},
+  {line:"ph",name:"퓨어 하이드라 PDRN 플러스 선스크린",vol:"50ml",
+    tracks:{기획:["done","확정"],처방:["done","그린코스"],
+      디자인:["warn","수정중"],임상:null,인증:["wait","기능성 심사 예정"],"부자재·발주":["prog","봉합라벨 진행"]},
+    mun:{"1차 문안 기획":["done","완료"],"제조사 확인":["warn","(3/17) 요청"],"CPNP/MoCRA 확인":["warn","(3/6) 요청"],"쇼피·상세":["wait","미착수"]}},
+  {line:"gb",name:"톤업 핏 글로우 토너",vol:"155ml",
+    tracks:{기획:["done","확정"],처방:["done","메가코스"],
+      디자인:["done","완료"],임상:null,인증:["done","비건 유효"],"부자재·발주":["prog","F-12 재고 499"]},
+    mun:{"1차 문안 기획":["done","완료"],"제조사 확인":["done","완료"],"CPNP/MoCRA 확인":["done","완료"],"쇼피·상세":["done","완료"]}},
+  {line:"gb",name:"퀸스 글로우 토닝 에센스",vol:"50ml",
+    tracks:{기획:["done","확정"],처방:["done","메가코스"],
+      디자인:["done","완료"],임상:null,인증:["done","비건·CPNP·MoCRA 유효"],"부자재·발주":["warn","F-08 재고 168"]},
+    mun:{"1차 문안 기획":["done","완료"],"제조사 확인":["done","완료"],"CPNP/MoCRA 확인":["done","완료"],"쇼피·상세":["prog","팀장님 컨펌 대기"]}},
+  {line:"gb",name:"딥 스킨 배리어 크림",vol:"50ml",
+    tracks:{기획:["done","확정"],처방:["done","메가코스"],
+      디자인:["done","완료"],임상:null,인증:["done","비건·CPNP·MoCRA 유효"],"부자재·발주":["risk","F-09 재고 0"]},
+    mun:{"1차 문안 기획":["done","완료"],"제조사 확인":["done","완료"],"CPNP/MoCRA 확인":["done","완료"],"쇼피·상세":["prog","팀장님 컨펌 대기"]}},
+  {line:"gb",name:"핑크 PDRN 글로우 선스크린 (가칭)",vol:"50ml",
+    tracks:{기획:["prog","기획 진행"],처방:["prog","개선 샘플 테스트"],
+      디자인:["wait","미착수"],임상:null,인증:["wait","미착수"],"부자재·발주":["wait","미착수"]},
+    mun:{"1차 문안 기획":["wait","미착수"],"제조사 확인":["wait","미착수"],"CPNP/MoCRA 확인":["wait","미착수"],"쇼피·상세":["wait","미착수"]}},
+  {line:"gb",name:"PDRN 젤리 클렌저",vol:"50ml",
+    tracks:{기획:["prog","기획 진행"],처방:["prog","개선 샘플 테스트"],
+      디자인:["wait","미착수"],임상:null,인증:["wait","미착수"],"부자재·발주":["wait","미착수"]},
+    mun:{"1차 문안 기획":["wait","미착수"],"제조사 확인":["wait","미착수"],"CPNP/MoCRA 확인":["wait","미착수"],"쇼피·상세":["wait","미착수"]}},
+];
+function prodKey(){return "fiorese_products";}
+function loadProd(){ try{const s=localStorage.getItem(prodKey());if(s)return JSON.parse(s);}catch(e){} return JSON.parse(JSON.stringify(productsDefault)); }
+function saveProd(){ try{localStorage.setItem(prodKey(),JSON.stringify(products));}catch(e){} saveToSheet(); }
+let products=loadProd();
+const TRACK_ORDER=["기획","처방","디자인","인증"];
+const TRACK_ORDER_FULL=["기획","처방","디자인","임상","인증","부자재·발주"];
+const MUN_KEYS=["1차 문안 기획","제조사 확인","CPNP/MoCRA 확인","쇼피·상세"];
+
+/* ---- 인증 ---- */
+const certDefault=[
+  {line:"ph",name:"퓨어 하이드라 워터 토너",vegan:{no:"C 1071-003",reg:"2025.12.15",exp:"2027.12.14"},cpnp:{no:"5727826",reg:"2026.1.30"},mocra:{no:"53-226171-972471",reg:"2026.2.9"},status:["done","유효"]},
+  {line:"ph",name:"퓨어 하이드라 워터 세럼",vegan:{no:"C1071-001",reg:"2025.4.2",exp:"2026.4.1"},cpnp:{no:"5165596",reg:"2025.5.18"},mocra:{no:"53-723289-793298",reg:"2025.12.9"},status:["risk","비건 만료"]},
+  {line:"ph",name:"퓨어 하이드라 워터 크림",vegan:{no:"C1071-002",reg:"2025.4.2",exp:"2026.4.2"},cpnp:{no:"5165566",reg:"2025.5.18"},mocra:{no:"53-661468-388152",reg:"2025.12.9"},status:["risk","비건 만료"]},
+  {line:"ph",name:"퓨어 하이드라 블루 PDRN 클렌저",vegan:{},cpnp:{no:"라벨 검토중",reg:""},mocra:{no:"53-996927-649247",reg:"2026.7.7"},status:["prog","진행중"]},
+  {line:"ph",name:"퓨어 하이드라 PDRN 선스크린",vegan:{},cpnp:{},mocra:{},status:["wait","예정"]},
+  {line:"ph",name:"퓨어 하이드라 PDRN 플러스 선스크린",vegan:{},cpnp:{},mocra:{},status:["wait","예정"]},
+  {line:"gb",name:"톤업 핏 글로우 토너",vegan:{no:"C 1071-006",reg:"2025.12.16",exp:"2027.12.15"},cpnp:{no:"5953695",reg:"2026.6.19"},mocra:{no:"53-923660-772982",reg:"2026.6.21"},status:["done","유효"]},
+  {line:"gb",name:"퀸스 글로우 토닝 에센스",vegan:{no:"C 1071-005",reg:"2025.12.16",exp:"2027.12.15"},cpnp:{no:"5573576",reg:"2025.11.11"},mocra:{no:"53-122643-214405",reg:"2025.10.21"},status:["done","유효"]},
+  {line:"gb",name:"딥 스킨 배리어 크림",vegan:{no:"C 1071-004",reg:"2025.12.16",exp:"2027.12.15"},cpnp:{no:"5575473",reg:"2025.11.11"},mocra:{no:"53-922312-284941",reg:"2025.10.21"},status:["done","유효"]},
+  {line:"gb",name:"핑크 PDRN 글로우 선스크린 (가칭)",vegan:{},cpnp:{},mocra:{},status:["wait","예정"]},
+];
+function certKey(){return "fiorese_cert";}
+function loadCert(){ try{const s=localStorage.getItem(certKey());if(s)return JSON.parse(s);}catch(e){} return JSON.parse(JSON.stringify(certDefault)); }
+function saveCert(){ try{localStorage.setItem(certKey(),JSON.stringify(certData));}catch(e){} saveToSheet(); }
+let certData=loadCert();
+
+/* ---- 원가 ---- */
+const costDefault=[
+  {line:"ph",name:"퓨어 하이드라 워터 토너",vol:"155ml",vatEx:"2,021",vatIn:"2,223",retail:"21,000",b2b:"5,774",rate:"35%",margin:"90.4%"},
+  {line:"ph",name:"퓨어 하이드라 워터 세럼",vol:"50ml",vatEx:"2,216",vatIn:"2,438",retail:"23,000",b2b:"6,331",rate:"35%",margin:"90.4%"},
+  {line:"ph",name:"퓨어 하이드라 워터 세럼",vol:"100ml",vatEx:"2,645",vatIn:"2,910",retail:"29,000",b2b:"7,557",rate:"35%",margin:"90.9%"},
+  {line:"ph",name:"퓨어 하이드라 워터 크림",vol:"50ml",vatEx:"1,892",vatIn:"2,081",retail:"23,000",b2b:"5,406",rate:"35%",margin:"91.8%"},
+  {line:"ph",name:"퓨어 하이드라 블루 PDRN 클렌저",vol:"125ml",vatEx:"2,468",vatIn:"2,715",retail:"15,000",b2b:"7,051",rate:"35%",margin:"83.5%"},
+  {line:"ph",name:"퓨어 하이드라 PDRN 선스크린",vol:"50ml",vatEx:"2,630",vatIn:"2,893",retail:"23,000",b2b:"7,514",rate:"35%",margin:"88.6%"},
+  {line:"ph",name:"퓨어 하이드라 PDRN 플러스 선스크린",vol:"50ml",vatEx:"2,630",vatIn:"2,893",retail:"23,000",b2b:"7,514",rate:"35%",margin:"88.6%"},
+  {line:"gb",name:"톤업 핏 글로우 토너",vol:"155ml",vatEx:"2,261",vatIn:"2,487",retail:"22,000",b2b:"6,460",rate:"35%",margin:"89.7%"},
+  {line:"gb",name:"퀸스 글로우 토닝 에센스",vol:"50ml",vatEx:"2,511",vatIn:"2,762",retail:"25,000",b2b:"7,174",rate:"35%",margin:"90.0%"},
+  {line:"gb",name:"딥 스킨 배리어 크림",vol:"50ml",vatEx:"1,902",vatIn:"2,092",retail:"27,000",b2b:"5,434",rate:"35%",margin:"93.0%"},
+  {line:"gb",name:"핑크 PDRN 글로우 선스크린 (가칭)",vol:"50ml",vatEx:"0",vatIn:"0",retail:"0",b2b:"0",rate:"35%",margin:"0.0%"},
+];
+function costKey(){return "fiorese_cost";}
+function loadCost(){ try{const s=localStorage.getItem(costKey());if(s)return JSON.parse(s);}catch(e){} return JSON.parse(JSON.stringify(costDefault)); }
+function saveCost(){ try{localStorage.setItem(costKey(),JSON.stringify(costData));}catch(e){} saveToSheet(); }
+let costData=loadCost();
+
+/* ---- 발주 ---- */
+const orderDefault=[
+  {line:"ph",code:"F-11",name:"퓨어 하이드라 워터 토너",vol:"155ml",maker:"그린코스",tube:{ct:"완료",o:"2/2",i:"3/16",late:true},cap:{ct:"완료",o:"",i:""},label:{o:"2/2",i:"2/20"},seal:{o:"1/22",i:"2/23"},box:{o:"2/3",i:"3/6"},carton:{o:"2/3",i:"2/20"},stock:"1,079",fillOd:"02월 05일",fillId:"03월 25일",total:"6,079",sched:"퓨어 하이드라 워터 토너 타임스케줄.xlsx",note:""},
+  {line:"ph",code:"F-03",name:"퓨어 하이드라 워터 세럼",vol:"50ml",maker:"메가코스",tube:{ct:"완료",o:"1/27",i:"3/6"},cap:{ct:"완료",o:"",i:""},label:{o:"재고 있음(5,000)",i:""},seal:{o:"1/22",i:"2/23"},box:{o:"1/30",i:"3/6"},carton:{o:"1/29",i:"2/20"},stock:"3,342",fillOd:"01월 30일",fillId:"03월 31일",total:"8,342",sched:"퓨어 하이드라 워터 세럼 타임스케줄.xlsx",note:""},
+  {line:"ph",code:"F-04",name:"퓨어 하이드라 워터 세럼",vol:"100ml",maker:"메가코스",tube:{ct:"완료",o:"1/14",i:"3/6"},cap:{ct:"완료",o:"",i:""},label:{o:"재고 있음(5,000)",i:""},seal:{o:"1/22",i:"2/23"},box:{o:"1/30",i:"3/6"},carton:{o:"1/29",i:"2/20"},stock:"1,153",fillOd:"01월 30일",fillId:"03월 31일",total:"6,153",sched:"퓨어 하이드라 워터 세럼 타임스케줄.xlsx",note:""},
+  {line:"ph",code:"F-05",name:"퓨어 하이드라 워터 크림",vol:"50ml",maker:"메가코스",tube:{ct:"완료",o:"2/4",i:"3/18",late:true},cap:{ct:"완료",o:"",i:""},label:{o:"",i:""},seal:{o:"1/22",i:"2/23"},box:{o:"2/26",i:"3/6"},carton:{o:"2/3",i:"2/20"},stock:"4,999",fillOd:"02월 26일",fillId:"03월 20일",total:"9,999",sched:"퓨어 하이드라 워터 크림 타임스케줄.xlsx",note:""},
+  {line:"ph",code:"F-13",name:"퓨어 하이드라 블루 PDRN 클렌저",vol:"125ml",maker:"코스모코스",tube:{ct:"진행중",o:"3/23",i:"5/8"},cap:{ct:"샘플요청",na:true},label:{o:"",i:""},seal:{o:"1/22",i:"2/23"},box:{o:"",i:""},carton:{o:"",i:""},stock:"0",fillOd:"",fillId:"",total:"0",sched:"퓨어 하이드라 블루 PDRN 클렌저 타임스케줄.xlsx",note:"튜브 10,000개 발주 → 5,000개 생산"},
+  {line:"ph",code:"F-14",name:"퓨어 하이드라 PDRN 선스크린",vol:"50ml",maker:"그린코스",tube:{ct:"진행중",o:"3/23",i:"5/8"},cap:{ct:"샘플요청",na:true},label:{o:"",i:""},seal:{o:"1/22",i:"2/23"},box:{o:"",i:""},carton:{o:"",i:""},stock:"0",fillOd:"",fillId:"",total:"0",sched:"퓨어 하이드라 PDRN 선스크린 타임스케줄.xlsx",note:"튜브 10,000개 발주 → 5,000개 생산"},
+  {line:"ph",code:"",name:"퓨어 하이드라 PDRN 플러스 선스크린",vol:"50ml",maker:"그린코스",tube:{ct:"진행중",o:"3/23",i:"5/8"},cap:{ct:"샘플요청",na:true},label:{o:"",i:""},seal:{o:"3/27",i:"4/30"},box:{o:"",i:""},carton:{o:"",i:""},stock:"0",fillOd:"",fillId:"",total:"0",sched:"퓨어 하이드라 PDRN 플러스 선스크린 타임스케줄.xlsx",note:"봉합라벨 워터토너 1만개 중 5천개 사용"},
+  {line:"gb",code:"F-12",name:"톤업 핏 글로우 토너",vol:"155ml",maker:"메가코스",tube:{ct:"완료",o:"2/2",i:"3/17",late:true},cap:{ct:"완료",o:"",i:""},label:{o:"2/2",i:"2/20"},seal:{o:"2/6",i:"2/23"},box:{o:"3/3",i:"3/20"},carton:{o:"2/3",i:"2/20"},stock:"499",fillOd:"03월 04일",fillId:"03월 27일",total:"499",sched:"톤업 핏 글로우 토너 타임스케줄.xlsx",note:""},
+  {line:"gb",code:"F-08",name:"퀸스 글로우 토닝 에센스",vol:"50ml",maker:"메가코스",tube:{ct:"완료",o:"1/19",i:"3/3"},cap:{ct:"완료",o:"1/20",i:"2/24"},label:{o:"2/4",i:"2/20"},seal:{o:"재고 사용(5,000)",i:""},box:{o:"1/22",i:"3/6"},carton:{o:"1/29",i:"2/20"},stock:"168",fillOd:"01월 20일",fillId:"03월 11일",total:"168",sched:"퀸스 글로우 토닝 에센스 타임스케줄.xlsx",note:""},
+  {line:"gb",code:"F-09",name:"딥 스킨 배리어 크림",vol:"50ml",maker:"메가코스",tube:{ct:"완료",o:"1/12",i:"3/18",late:true},cap:{ct:"완료",o:"",i:""},label:{o:"재고 사용(10,000)",i:""},seal:{o:"1/22",i:"3/6"},box:{o:"1/29",i:"2/20"},carton:{o:"",i:""},stock:"0",fillOd:"01월 20일",fillId:"03월 20일",total:"0",sched:"딥 스킨 배리어 크림 타임스케줄.xlsx",note:""},
+  {line:"gb",code:"",name:"톤업 핏 선스크린 (가칭)",vol:"50ml",maker:"한국콜마",tube:{ct:"",o:"",i:""},cap:{ct:"",o:"",i:""},label:{o:"",i:""},seal:{o:"",i:""},box:{o:"",i:""},carton:{o:"",i:""},stock:"0",fillOd:"",fillId:"",total:"0",sched:"톤업 핏 선스크린 (가칭) 타임스케줄.xlsx",note:""},
+];
+/* 발주 데이터 저장/불러오기 (입고일 등 직접 수정) */
+function orderKey(){return "fiorese_order";}
+function loadOrder(){ try{const s=localStorage.getItem(orderKey());if(s)return JSON.parse(s);}catch(e){} return JSON.parse(JSON.stringify(orderDefault)); }
+function saveOrder(){ try{localStorage.setItem(orderKey(),JSON.stringify(orderData));}catch(e){} saveToSheet(); }
+let orderData=loadOrder();
+
+/* ---- 상표 ----
+   group: domestic(국내) / madrid(해외-마드리드) / individual(해외-개별)
+   마드리드: 국제등록번호(1838519, 1899180)를 여러 지정국이 공유
+*/
+const tmDefault=[
+  // 국내
+  {group:"domestic",mark:"FIORESE",country:"대한민국",cls:"03류",agent:"메이저",status:["done","등록완료"],detail:"등록 완료",no:"4020230232257",regDate:"2026.5.20",note:"등록"},
+  {group:"domestic",mark:"FIORESE 피오레스",country:"대한민국",cls:"03류",agent:"메이저",status:["done","등록완료"],detail:"등록 완료",no:"4020240123332",regDate:"2025.4.1",note:"등록"},
+  {group:"domestic",mark:"FIORESE 피오레스",country:"대한민국",cls:"35류",agent:"메이저",status:["done","등록완료"],detail:"등록 완료",no:"4020240135080",regDate:"2026.4.1",note:"등록"},
+  // 해외 - 마드리드 (국제등록 1838519)
+  {group:"madrid",intl:"1838519",mark:"FIORESE",country:"유럽 (EU)",cls:"03류",agent:"메이저",status:["done","완료"],detail:"등록 완료",no:"1838519",regDate:"2025.7.10",renew:"2034.12.18",note:"완료"},
+  {group:"madrid",intl:"1838519",mark:"FIORESE",country:"베트남",cls:"03류",agent:"메이저",status:["done","완료"],detail:"등록 완료",no:"1838519",regDate:"2026.2.23",renew:"2034.12.18",note:"완료"},
+  {group:"madrid",intl:"1838519",mark:"FIORESE",country:"인도네시아",cls:"03류",agent:"메이저",status:["check","확인필요"],detail:"이의 답변 제출 후 대기",no:"1838519",regDate:"-",renew:"2034.12.18",note:"선등록상표 공존 주장 검토"},
+  {group:"madrid",intl:"1838519",mark:"FIORESE",country:"러시아",cls:"03류",agent:"메이저",status:["done","완료"],detail:"등록 완료",no:"1838519",regDate:"2025.5.29",renew:"2034.12.18",note:"완료"},
+  {group:"madrid",intl:"1838519",mark:"FIORESE",country:"튀르키예",cls:"03류",agent:"메이저",status:["gone","포기"],detail:"등록 포기",no:"1838519",regDate:"-",renew:"-",note:"거절 후 등록 포기 결정"},
+  {group:"madrid",intl:"1838519",mark:"FIORESE",country:"태국",cls:"03류",agent:"메이저",status:["prog","진행중"],detail:"출원완료",no:"1838519",regDate:"-",renew:"2035.12.16",note:"등록소요 1~2개월"},
+  // 해외 - 마드리드 (국제등록 1899180)
+  {group:"madrid",intl:"1899180",mark:"FIORESE",country:"말레이시아",cls:"03류",agent:"리앤목",status:["prog","진행중"],detail:"출원완료",no:"1899180",regDate:"-",renew:"2035.12.16",note:"등록소요 1년~1년2개월"},
+  {group:"madrid",intl:"1899180",mark:"FIORESE",country:"싱가포르",cls:"03류",agent:"리앤목",status:["prog","진행중"],detail:"출원완료",no:"1899180",regDate:"-",renew:"2035.12.16",note:"등록소요 9개월~1년"},
+  {group:"madrid",intl:"1899180",mark:"FIORESE",country:"일본",cls:"03류",agent:"리앤목",status:["prog","진행중"],detail:"출원완료",no:"1899180",regDate:"-",renew:"2035.12.16",note:"등록소요 1년"},
+  {group:"madrid",intl:"1899180",mark:"FIORESE",country:"아랍에미리트",cls:"03류",agent:"리앤목",status:["prog","진행중"],detail:"출원완료",no:"1899180",regDate:"-",renew:"2035.12.16",note:"등록소요 1~1년6개월"},
+  {group:"madrid",intl:"1899180",mark:"FIORESE",country:"오만",cls:"03류",agent:"리앤목",status:["prog","진행중"],detail:"출원완료",no:"1899180",regDate:"-",renew:"2035.12.16",note:"등록소요 1년6개월 이상"},
+  {group:"madrid",intl:"1899180",mark:"FIORESE",country:"바레인",cls:"03류",agent:"리앤목",status:["prog","진행중"],detail:"출원완료",no:"1899180",regDate:"-",renew:"2035.12.16",note:"등록소요 1년6개월 이상"},
+  // 해외 - 개별
+  {group:"individual",mark:"FIORESE",country:"미국",cls:"03류",agent:"메이저",status:["hold","홀딩"],detail:"국내 등록 후 진행 예정",no:"-",regDate:"-",note:"등록소요 20개월"},
+  {group:"individual",mark:"FIORESE",country:"미얀마",cls:"03류",agent:"리앤목",status:["prog","진행중"],detail:"심사 대기중(27년 완료 예상)",no:"114075941",regDate:"2025.10.15",note:"출원 2025.10.15"},
+  {group:"individual",mark:"FIORESE",country:"대만",cls:"03류",agent:"리앤목",status:["prog","진행중"],detail:"출원완료(26년 말 예상)",no:"-",regDate:"-",note:"대리비 결제완료 · 미국 대리 수수료 별도"},
+  {group:"individual",mark:"FIORESE",country:"사우디아라비아",cls:"03류",agent:"리앤목",status:["prog","진행중"],detail:"등록료 납부 예정",no:"SA-1184237",regDate:"-",note:"3분류 전체 지정"},
+  {group:"individual",mark:"FIORESE",country:"이라크-바그다드",cls:"03류",agent:"리앤목",status:["check","확인필요"],detail:"출원완료 · 1차 진행비용 환불/재견적",no:"260123-5286358233",regDate:"-",note:"비용 재확인 필요"},
+  {group:"individual",mark:"FIORESE",country:"이라크-쿠르디스탄",cls:"03류",agent:"리앤목",status:["hold","종료"],detail:"홀딩",no:"-",regDate:"-",note:"국내 상표 등록 후 진행"},
+];
+function tmKey(){return "fiorese_tm";}
+function loadTm(){ try{const s=localStorage.getItem(tmKey());if(s)return JSON.parse(s);}catch(e){} return JSON.parse(JSON.stringify(tmDefault)); }
+function saveTm(){ try{localStorage.setItem(tmKey(),JSON.stringify(tmData));}catch(e){} saveToSheet(); }
+let tmData=loadTm();
+
+
+/* ===== 헬퍼 ===== */
+const B={done:"b-done",prog:"b-prog",wait:"b-wait",warn:"b-warn",risk:"b-risk",na:"b-na",hold:"b-hold",shared:"b-shared",gone:"b-gone",check:"b-check"};
+function badge(t,label){return `<span class="badge ${B[t]||'b-wait'}">${label}</span>`;}
+function lineChip(l){return l==="ph"
+  ? `<div class="lgroup-h ph"><span class="dotc"></span>PURE HYDRA</div>`
+  : `<div class="lgroup-h gb"><span class="dotc"></span>GLOW &amp; BARRIER</div>`;}
+function shell(id,title,sub,cardHTML,tableHTML,extraBanner){
+  const defCard=isMobile;
+  return `
+   <div class="page-h">
+     <div><div class="pt">${title}</div><div class="ps">${sub}</div></div>
+     <div class="toggle" data-toggle="${id}">
+       <button class="${defCard?'on':''}" data-view="card">카드</button>
+       <button class="${defCard?'':'on'}" data-view="table">표</button>
+     </div>
+   </div>
+   ${extraBanner||""}
+   <div id="${id}-card" class="${defCard?'':'hide'}">${cardHTML}</div>
+   <div id="${id}-table" class="${defCard?'hide':''}">${tableHTML}</div>`;
+}
+
+/* 제품 진행률 계산 (해당없음 트랙 제외; 임상은 참조 상태로 환산) */
+function prodProgress(p){
+  let done=0,appl=0;
+  TRACK_ORDER.forEach(k=>{
+    let st;
+    if(k==="임상"){const s=studyOf(p.name); st=s?s.status[0]:"na";}
+    else st=p.tracks[k]?p.tracks[k][0]:"na";
+    if(st==="na"||st===undefined)return;
+    appl++; if(st==="done")done++;
+  });
+  return appl?Math.round(done/appl*100):0;
+}
+
+/* ============================================================
+   대시보드
+============================================================ */
+
+function buildProgress(){
+  // 상태 → 표시 규칙: done=완료(배지), hold=홀딩(배지), 그 외는 메모 텍스트로
+  function statusCell(st,memo){
+    if(st==="done") return `${badge("done","완료")}`;
+    if(st==="hold") return `${badge("hold","홀딩")}`;
+    // 진행중/주의/지연/대기 → 배지 없이 확인 내용(memo)만
+    return `<span class="tmemo-inline">${memo||"진행중"}</span>`;
+  }
+  function trackRow(p,k){
+    let st,memo,expandable=false,subHTML="";
+    if(k==="디자인"){
+      if(!p.tracks[k]){st="na";memo="해당없음";}
+      else [st,memo]=p.tracks[k];
+      expandable=true;
+      const items=MUN_KEYS.map(mk=>`<div class="sub-item"><span class="si-k">${mk}</span>${badge(p.mun&&p.mun[mk]?(p.mun[mk][0]==="done"?"done":"wait"):"wait",p.mun&&p.mun[mk]?p.mun[mk][1]:"대기")}</div>`).join("");
+      subHTML=`<div class="subwrap"><div class="flow-note">문안 흐름: 1차 기획 → 제조사 확인 → CPNP/MoCRA 등록업체 확인 → 수정</div><div class="subgrid">${items}</div></div>`;
+    } else {
+      if(!p.tracks[k]){st="na";memo="해당없음";}
+      else [st,memo]=p.tracks[k];
+    }
+    const showBadge = st==="done"||st==="hold";
+    return `<div class="track ${expandable?'expandable':''}">
+      <div class="track-main">
+        <span class="tname">${k}</span>
+        <span class="tval">${st==="na"?'<span class="tmemo-inline dim">해당없음</span>':statusCell(st,memo)}</span>
+        ${expandable?'<span class="caret">▶</span>':''}
+      </div>${subHTML}</div>`;
+  }
+  function card(p){
+    const rows=TRACK_ORDER.map(k=>trackRow(p,k)).join("");
+    return `<div class="mcard ${p.line}">
+      <div class="hd"><div><div class="pn">${p.name}</div><div class="vol">${p.vol}</div></div></div>
+      <div class="tracks">${rows}</div></div>`;
+  }
+  const cardHTML=["ph","gb"].map(l=>`<div class="lgroup">${lineChip(l)}<div class="cards">${products.filter(p=>p.line===l).map(card).join("")}</div></div>`).join("");
+
+  // 표: 제품 × 트랙(기획·처방·디자인·인증), 각 칸 클릭 편집
+  const head=`<thead><tr><th class="stickyc">제품명</th><th class="vline">용량</th>${TRACK_ORDER.map(t=>`<th class="vline">${t}</th>`).join("")}<th class="vline"></th></tr></thead>`;
+  const body=products.map((p,pi)=>{
+    const cells=TRACK_ORDER.map(k=>{
+      const has=!!p.tracks[k];
+      const st=has?p.tracks[k][0]:"na";
+      const memo=has?p.tracks[k][1]:"";
+      let inner;
+      if(st==="done") inner=badge("done","완료");
+      else if(st==="hold") inner=badge("hold","홀딩");
+      else if(st==="na") inner='<span class="tmemo-inline dim">해당없음</span>';
+      else inner=`<span class="tmemo-inline">${memo||"진행중"}</span>`;
+      return `<td class="vline prog-cell" data-progedit="${pi}" data-progk="${k}" title="클릭해서 수정">${inner}</td>`;
+    }).join("");
+    return `<tr class="${p.line}-row"><td class="stickyc editable" data-progname="${pi}" title="클릭해서 수정">${p.name}</td><td class="vline editable" data-progvol="${pi}" title="클릭해서 수정">${p.vol}</td>${cells}<td class="vline"><button class="tdel" data-progdel="${pi}" aria-label="삭제">✕</button></td></tr>`;
+  }).join("");
+  const tableHTML=`<div class="tablecard"><div class="scrollx"><table class="vtable">${head}<tbody>${body}</tbody></table></div></div>`;
+
+  const addForm=`<div class="block">
+    <div class="block-h"><div class="bt">➕ 제품 추가</div></div>
+    <div class="card" style="padding:13px"><div class="addrow" style="flex-wrap:wrap">
+      <select id="prAddLine" class="tinput" style="max-width:150px"><option value="ph">Pure Hydra</option><option value="gb">Glow & Barrier</option></select>
+      <input id="prAddName" class="tinput" placeholder="제품명" style="flex:1;min-width:150px">
+      <input id="prAddVol" class="tinput" placeholder="용량 (예: 50ml)" style="max-width:130px">
+      <button class="addbtn" id="prAdd">추가</button>
+    </div></div></div>`;
+
+  document.getElementById("progress").innerHTML=shell("progress","제품 진행 현황","기획 · 처방 · 디자인(문안) · 인증",cardHTML,tableHTML,
+    `<div class="banner">👉 표에서 각 칸을 눌러 <b>상태·내용을 직접 수정</b>하고, 제품을 추가·삭제할 수 있습니다.</div>`+addForm);
+}
+/* 진행현황 상태 선택지 */
+const PROG_STATUS=[["done","완료"],["hold","홀딩"],["prog","진행중"],["warn","주의"],["risk","지연"],["wait","대기"],["na","해당없음"]];
+
+/* ============================================================
+   임상 (건 단위 + 제품 연결)
+============================================================ */
+function buildClinical(){
+  // 제품명 우선: 각 제품마다 행(같은 임상은 공동 표시). 열: 제품명/임상항목/기관/상태/시작일/국문/영문
+  const rows=clinicalStudies.map((s,si)=>({
+    pname:s.products.join(", "),
+    s, si,
+    shared:s.products.length>1,
+    first:true,
+    cnt:s.products.length
+  }));
+  function statusB(st,label){return badge(st,label);}
+  // 카드(모바일)
+  function card(r){
+    const s=r.s;
+    return `<div class="mcard">
+      <div class="hd"><div><div class="pn">${r.pname}</div><div class="vol">${s.item} · ${s.lab}${r.shared?' · '+r.cnt+'종 공동':''}</div></div>${statusB(s.status[0],s.status[1])}</div>
+      <div class="mgrid">
+        <div class="cell"><div class="ck">시작일</div><div class="cv">${s.start}</div></div>
+        <div class="cell"><div class="ck">기관</div><div class="cv">${s.lab}</div></div>
+        <div class="cell"><div class="ck">국문 발행</div><div class="cv">${s.kor}</div></div>
+        <div class="cell"><div class="ck">영문 발행</div><div class="cv">${s.eng}</div></div>
+      </div>
+      <div class="mrow"><span class="k">임상계획서</span><span class="v"><span class="doclink" data-file="${s.doc}">📄 ${s.doc}</span></span></div>
+    </div>`;
+  }
+  const cardHTML=`<div class="cards">${rows.map(card).join("")}</div>`;
+
+  const head=`<thead><tr><th class="stickyc">제품명</th><th class="vline">임상항목</th><th class="vline">기관</th><th class="vline">상태</th><th class="vline">시작일</th><th class="vline">국문 발행</th><th class="vline">영문 발행</th><th class="vline">임상계획서</th><th class="vline"></th></tr></thead>`;
+  const body=rows.map(r=>{
+    const s=r.s;
+    const sharedBadge=r.shared&&r.first?` ${badge('shared',r.cnt+'종 공동')}`:'';
+    return `<tr><td class="stickyc">${r.pname}${sharedBadge}</td>
+      <td class="vline editable" data-clinfld="${r.si}" data-cf="item" title="클릭해서 수정">${s.item}</td>
+      <td class="vline editable" data-clinfld="${r.si}" data-cf="lab" title="클릭해서 수정">${s.lab}</td>
+      <td class="vline stedit" data-clinedit="${r.si}" title="클릭해서 상태 변경">${statusB(s.status[0],s.status[1])} <span class="ed-pencil">✎</span></td>
+      <td class="vline num editable" data-clinfld="${r.si}" data-cf="start" title="클릭해서 수정">${s.start}</td>
+      <td class="vline num editable" data-clinfld="${r.si}" data-cf="kor" title="클릭해서 수정">${s.kor}</td>
+      <td class="vline num editable" data-clinfld="${r.si}" data-cf="eng" title="클릭해서 수정">${s.eng}</td>
+      <td class="vline"><span class="doclink" data-file="${s.doc}">📄 계획서</span></td>
+      <td class="vline">${r.first?`<button class="tdel" data-clindel="${r.si}" aria-label="삭제">✕</button>`:''}</td></tr>`;
+  }).join("");
+  const tableHTML=`<div class="tablecard"><div class="scrollx"><table class="vtable">${head}<tbody>${body}</tbody></table></div></div>`;
+
+  const addForm=`<div class="block">
+    <div class="block-h"><div class="bt">➕ 임상 추가 (일정 등록)</div></div>
+    <div class="card" style="padding:13px"><div class="addrow" style="flex-wrap:wrap">
+      <input id="clAddProd" class="tinput" placeholder="대상 제품명 (쉼표로 여러 개)" style="flex:1;min-width:160px">
+      <input id="clAddItem" class="tinput" placeholder="임상항목 (예: 저자극 시험)" style="flex:1;min-width:140px">
+      <input id="clAddLab" class="tinput" placeholder="기관" style="max-width:120px">
+      <input id="clAddStart" class="tinput" placeholder="시작일 (예: 2026.05.01)" style="max-width:150px">
+      <button class="addbtn" id="clAdd">추가</button>
+    </div></div></div>`;
+
+  document.getElementById("clinical").innerHTML=shell("clinical","임상","제품별 임상 현황 · 임상계획서(워드) 관리",cardHTML,tableHTML,
+    `<div class="banner">👉 표에서 <b>항목·기관·상태·발행일</b>을 직접 수정하고, 아래에서 <b>임상 일정을 추가</b>할 수 있습니다.</div>`+addForm);
+}
+/* 임상 상태 선택지 */
+const CLIN_STATUS=[["done","완료"],["prog","진행중"],["wait","대기"]];
+
+/* 인증 */
+function buildCert(){
+  // 빈 값 채움: 진행중이면 '진행중', 아니면 'X'
+  function fill(v,inProgress){ return v?v:(inProgress?'<span class="cert-prog">진행중</span>':'<span class="cert-x">X</span>'); }
+  function isProg(c){ return c.status[0]==="wait"||c.status[0]==="prog"; }
+  function card(c){
+    const ip=isProg(c);
+    return `<div class="mcard ${c.line}">
+      <div class="hd"><div class="pn">${c.name}</div></div>
+      <div class="cert-block">
+        <div class="cert-b-h">비건</div>
+        <div class="mgrid">
+          <div class="cell"><div class="ck">인증번호</div><div class="cv">${fill(c.vegan.no,ip)}</div></div>
+          <div class="cell"><div class="ck">등록일</div><div class="cv">${fill(c.vegan.reg,ip)}</div></div>
+          <div class="cell"><div class="ck">만료일</div><div class="cv">${fill(c.vegan.exp,ip)}</div></div>
+        </div>
+      </div>
+      <div class="cert-block">
+        <div class="cert-b-h">CPNP (EU)</div>
+        <div class="mgrid">
+          <div class="cell"><div class="ck">인증번호</div><div class="cv">${fill(c.cpnp.no,ip)}</div></div>
+          <div class="cell"><div class="ck">등록일</div><div class="cv">${fill(c.cpnp.reg,ip)}</div></div>
+          <div class="cell"><div class="ck">만료일</div><div class="cv">${fill(c.cpnp.exp,ip)}</div></div>
+        </div>
+      </div>
+      <div class="cert-block">
+        <div class="cert-b-h">MoCRA (US)</div>
+        <div class="mgrid">
+          <div class="cell"><div class="ck">인증번호</div><div class="cv">${fill(c.mocra.no,ip)}</div></div>
+          <div class="cell"><div class="ck">등록일</div><div class="cv">${fill(c.mocra.reg,ip)}</div></div>
+          <div class="cell"><div class="ck">만료일</div><div class="cv">${fill(c.mocra.exp,ip)}</div></div>
+        </div>
+      </div>
+    </div>`;
+  }
+  const cardHTML=["ph","gb"].map(l=>`<div class="lgroup">${lineChip(l)}<div class="cards">${certData.filter(c=>c.line===l).map(card).join("")}</div></div>`).join("");
+
+  // 표: 2단 헤더 (비건/CPNP/MoCRA × 인증번호/등록일/만료일), 현황 행 삭제
+  const head=`<thead>
+    <tr><th class="stickyc" rowspan="2">제품명</th>
+      <th class="grp vline" colspan="3">비건</th>
+      <th class="grp vline" colspan="3">CPNP (EU)</th>
+      <th class="grp vline" colspan="3">MoCRA (US)</th></tr>
+    <tr><th class="vline">인증번호</th><th>등록일</th><th>만료일</th>
+        <th class="vline">인증번호</th><th>등록일</th><th>만료일</th>
+        <th class="vline">인증번호</th><th>등록일</th><th>만료일</th></tr>
+  </thead>`;
+  const body=certData.map((c,ci)=>{
+    const ip=isProg(c);
+    const ec=(grp,fld,v)=>`<td class="num editable" data-cedit="${ci}" data-cgrp="${grp}" data-cfld="${fld}" title="클릭해서 수정">${fill(v,ip)}</td>`;
+    const ecv=(grp,fld,v)=>`<td class="num vline editable" data-cedit="${ci}" data-cgrp="${grp}" data-cfld="${fld}" title="클릭해서 수정">${fill(v,ip)}</td>`;
+    return `<tr class="${c.line}-row"><td class="stickyc">${c.name}</td>
+      ${ecv("vegan","no",c.vegan.no)}${ec("vegan","reg",c.vegan.reg)}${ec("vegan","exp",c.vegan.exp)}
+      ${ecv("cpnp","no",c.cpnp.no)}${ec("cpnp","reg",c.cpnp.reg)}${ec("cpnp","exp",c.cpnp.exp)}
+      ${ecv("mocra","no",c.mocra.no)}${ec("mocra","reg",c.mocra.reg)}${ec("mocra","exp",c.mocra.exp)}</tr>`;
+  }).join("");
+  const tableHTML=`<div class="tablecard"><div class="scrollx"><table class="vtable">${head}<tbody>${body}</tbody></table></div></div>`;
+  document.getElementById("cert").innerHTML=shell("cert","인증 현황","비건 · CPNP(EU) · MoCRA(US) · 각 인증번호/등록일/만료일",cardHTML,tableHTML,
+    `<div class="banner">⚠ 워터 세럼·크림 <b>비건 인증 만료</b> 상태입니다. 빈 항목은 <b>진행중</b> 또는 <b>X</b>로 표시됩니다.</div>`);
+}
+
+/* 원가 */
+function buildCost(){
+  function card(c){
+    return `<div class="mcard ${c.line}">
+      <div class="hd"><div><div class="pn">${c.name}</div><div class="vol">${c.vol}</div></div><span class="badge b-prog">마진 ${c.margin}</span></div>
+      <div class="mgrid">
+        <div class="cell"><div class="ck">총원가(+vat)</div><div class="cv">${c.vatIn}원</div></div>
+        <div class="cell"><div class="ck">소비자가</div><div class="cv">${c.retail}원</div></div>
+        <div class="cell"><div class="ck">B2B 공급가</div><div class="cv">${c.b2b}원</div></div>
+        <div class="cell"><div class="ck">공급률</div><div class="cv">${c.rate}</div></div>
+      </div></div>`;
+  }
+  const cardHTML=["ph","gb"].map(l=>`<div class="lgroup">${lineChip(l)}<div class="cards">${costData.filter(c=>c.line===l).map(card).join("")}</div></div>`).join("");
+  const head=`<thead><tr><th class="stickyc">제품명</th><th class="vline">용량</th><th class="right vline">원가(-vat)</th><th class="right vline">원가(+vat)</th><th class="right vline">소비자가</th><th class="right vline">B2B 공급가</th><th class="right vline">공급률</th><th class="right vline">마진율</th></tr></thead>`;
+  const body=costData.map((c,ci)=>{
+    const ed=(f,v)=>`<td class="num right vline editable" data-costedit="${ci}" data-costf="${f}" title="클릭해서 수정">${v}</td>`;
+    return `<tr class="${c.line}-row"><td class="stickyc">${c.name}</td><td class="vline">${c.vol}</td>
+    ${ed("vatEx",c.vatEx)}${ed("vatIn",c.vatIn)}${ed("retail",c.retail)}
+    ${ed("b2b",c.b2b)}${ed("rate",c.rate)}${ed("margin",c.margin)}</tr>`;
+  }).join("");
+  const tableHTML=`<div class="tablecard"><div class="scrollx"><table class="vtable">${head}<tbody>${body}</tbody></table></div></div>`;
+  document.getElementById("cost").innerHTML=shell("cost","원가 · 마진","단위: KRW · 공급률 35%",cardHTML,tableHTML,
+    `<div class="banner secure">🔒 <b>기밀 정보</b> — 원가·공급가·마진은 대외 공개 금지. 표의 값은 직접 눌러 수정할 수 있습니다(구글 시트에 자동 저장).</div>`);
+}
+
+/* 발주 — 부자재별 발주일/입고일 분리 */
+const MAT_LIST=[["tube","용기/튜브"],["cap","캡/펌프"],["label","라벨"],["seal","봉합라벨"],["box","단상자"],["carton","카톤박스"]];
+function buildOrder(){
+  const CT_MATS=new Set(["tube","cap"]); // CT 상태가 있는 부자재
+  function ctBadge(ct){
+    if(!ct) return "—";
+    const map={"완료":"b-done","진행중":"b-prog","샘플요청":"b-warn"};
+    return `<span class="badge ${map[ct]||'b-wait'}">${ct}</span>`;
+  }
+  // 카드: 부자재 셀 (CT 포함)
+  function matCell(x,label,hasCT){
+    if(!x) return `<div class="cell"><div class="ck">${label}</div><div class="cv">—</div></div>`;
+    if(x.na) return `<div class="cell"><div class="ck">${label}</div>${hasCT?`<div style="font-size:10.5px;margin:2px 0"><span style="color:var(--ink-3);font-weight:700">CT</span> ${ctBadge(x.ct)}</div>`:''}<div class="cv"><span class="badge b-na">해당없음</span></div></div>`;
+    const o=x.o||"—", i=x.i||"—";
+    const iStyle=x.late?'color:var(--rose);font-weight:800':'';
+    return `<div class="cell"><div class="ck">${label}</div>
+      <div style="display:flex;flex-direction:column;gap:2px;margin-top:2px">
+        ${hasCT?`<div style="font-size:10.5px"><span style="color:var(--ink-3);font-weight:700">CT</span> ${ctBadge(x.ct)}</div>`:''}
+        <div style="font-size:11px"><span style="color:var(--ink-3);font-weight:700">발주</span> ${o}</div>
+        <div style="font-size:11px"><span style="color:var(--ink-3);font-weight:700">입고</span> <span style="${iStyle}">${i}</span></div>
+      </div></div>`;
+  }
+  function card(o){
+    const stockNum=parseInt((o.total||"0").replace(/,/g,""))||0;
+    const stockBadge=stockNum===0?badge("risk","재고 0"):badge("done","재고 "+o.total);
+    const mats=MAT_LIST.map(([k,lbl])=>matCell(o[k],lbl,CT_MATS.has(k))).join("");
+    return `<div class="mcard ${o.line}">
+      <div class="hd"><div><div class="pn">${o.code?o.code+" · ":""}${o.name}</div><div class="vol">${o.vol} · ${o.maker}</div></div>${stockBadge}</div>
+      <div class="mgrid">${mats}</div>
+      <div class="mrow"><span class="k">완제품 발주 / 입고</span><span class="v">${o.fillOd||"—"} → ${o.fillId||"—"}</span></div>
+      ${o.note?`<div class="mrow"><span class="k">비고</span><span class="v" style="color:var(--ink-2)">${o.note}</span></div>`:""}
+      <div class="mrow"><span class="k">타임스케줄</span><span class="v"><span class="doclink" data-file="${o.sched}">📄 미리보기</span></span></div>
+    </div>`;
+  }
+  const cardHTML=["ph","gb"].map(l=>`<div class="lgroup">${lineChip(l)}<div class="cards">${orderData.filter(o=>o.line===l).map(card).join("")}</div></div>`).join("");
+
+  // 표: CT(tube,cap만) + 발주일/입고일, 세로선, 타임스케줄 열
+  function oCell(x){ if(!x||x.na) return "—"; return x.o||"—"; }
+  function iCell(x){ if(!x||x.na) return "—"; const v=x.i||"—"; return x.late?`<span style="color:var(--rose);font-weight:800">${v}</span>`:v; }
+  const grpHead=MAT_LIST.map(([k,lbl])=>`<th class="grp vline" colspan="${CT_MATS.has(k)?3:2}">${lbl}</th>`).join("");
+  const subHead=MAT_LIST.map(([k])=>CT_MATS.has(k)?`<th class="vline">CT</th><th>발주일</th><th>입고일</th>`:`<th class="vline">발주일</th><th>입고일</th>`).join("");
+  const head=`<thead>
+    <tr><th class="stickyc" rowspan="2">제품명</th><th class="vline" rowspan="2">제품 코드</th><th rowspan="2">용량</th><th rowspan="2">제조사</th>
+      ${grpHead}
+      <th class="grp vline" rowspan="2">완제품<br>발주일</th><th rowspan="2">완제품<br>입고일</th><th class="grp right vline" rowspan="2">총재고</th><th class="vline" rowspan="2">비고</th><th class="vline" rowspan="2">타임스케줄</th></tr>
+    <tr>${subHead}</tr>
+  </thead>`;
+  const body=orderData.map((o,oi)=>{
+    const mats=MAT_LIST.map(([k])=>{
+      const x=o[k];
+      const na=!x||x.na;
+      const ct=CT_MATS.has(k)?(na?`<td class="vline">—</td>`:`<td class="vline matct" data-matedit="${oi}" data-matk="${k}" data-matf="ct" title="클릭해서 수정">${ctBadge(x.ct)}</td>`):'';
+      const first=CT_MATS.has(k)?'':' vline';
+      const oc=na?`<td class="num${first}">—</td>`:`<td class="num${first} editable" data-matedit="${oi}" data-matk="${k}" data-matf="o" title="클릭해서 수정">${x.o||"—"}</td>`;
+      const ic=na?`<td class="num">—</td>`:`<td class="num editable" data-matedit="${oi}" data-matk="${k}" data-matf="i" title="클릭해서 수정">${x.i||"—"}</td>`;
+      return `${ct}${oc}${ic}`;
+    }).join("");
+    return `<tr class="${o.line}-row"><td class="stickyc">${o.name}</td><td class="vline editable" data-oedit="${oi}" data-ofield="code" title="클릭해서 수정">${o.code||"—"}</td><td class="editable" data-oedit="${oi}" data-ofield="vol" title="클릭해서 수정">${o.vol}</td><td class="editable" data-oedit="${oi}" data-ofield="maker" title="클릭해서 수정">${o.maker}</td>
+      ${mats}
+      <td class="num vline editable" data-oedit="${oi}" data-ofield="fillOd" title="클릭해서 수정">${o.fillOd||"—"}</td>
+      <td class="num editable" data-oedit="${oi}" data-ofield="fillId" title="클릭해서 수정">${o.fillId||"—"}</td>
+      <td class="num right vline editable" data-oedit="${oi}" data-ofield="total" style="${(o.total==='0')?'color:var(--rose);font-weight:700':''}" title="클릭해서 수정">${o.total}</td>
+      <td class="vline editable" data-oedit="${oi}" data-ofield="note" style="white-space:normal;min-width:160px;color:var(--ink-2)" title="클릭해서 수정">${o.note||"—"}</td>
+      <td class="vline"><span class="doclink" data-file="${o.sched}">📄 미리보기</span></td></tr>`;
+  }).join("");
+  const tableHTML=`<div class="tablecard"><div class="scrollx"><table class="vtable">${head}<tbody>${body}</tbody></table></div></div>`;
+  document.getElementById("order").innerHTML=shell("order","발주·입고","부자재별 CT·발주일·입고일 · 제품별 타임스케줄 (2026 상반기)",cardHTML,tableHTML,
+    `<div class="banner">👉 표의 <b>모든 칸</b>(부자재 발주일·입고일·CT·재고·비고 등)을 눌러 직접 수정할 수 있습니다. 📄 타임스케줄로 파일 미리보기가 열립니다.</div>`);
+}
+
+/* 상표 — 국내 / 해외-마드리드 / 해외-개별 3구획 */
+function buildTM(){
+  function typeInfo(t){
+    if(t.group==="madrid") return {label:"마드리드",cls:"b-hold"};
+    if(t.group==="individual") return {label:"개별",cls:"b-prog"};
+    return {label:"국내",cls:"b-done"};
+  }
+  function card(t){
+    const ti=typeInfo(t);
+    return `<div class="mcard">
+      <div class="hd"><div><div class="pn">${t.country} <span class="badge ${ti.cls}" style="margin-left:4px">${ti.label}</span></div><div class="vol">${t.mark} · ${t.cls} · ${t.agent}</div></div>${badge(t.status[0],t.status[1])}</div>
+      <div class="mrow"><span class="k">상세현황</span><span class="v">${t.detail}</span></div>
+      <div class="mgrid">
+        <div class="cell"><div class="ck">${t.group==="madrid"?"국제등록번호":"출원번호"}</div><div class="cv">${t.no}</div></div>
+        <div class="cell"><div class="ck">${t.group==="madrid"?"갱신기한":"등록/갱신일"}</div><div class="cv">${t.group==="madrid"?(t.renew||"—"):t.regDate}</div></div>
+      </div>
+      ${t.note?`<div class="mrow"><span class="k">비고</span><span class="v" style="color:var(--ink-2)">${t.note}</span></div>`:""}
+    </div>`;
+  }
+  const cardHTML=`<div class="cards">${tmData.map(card).join("")}</div>`;
+
+  // 표: 구분을 맨 왼쪽, 소제목 삭제, 세로선
+  const head=`<thead><tr><th class="stickyc">구분</th><th class="vline">국가</th><th class="vline">상표명</th><th class="vline">류</th><th class="vline">대리인</th><th class="vline">현황</th><th class="vline">상세</th><th class="vline">출원/국제번호</th><th class="vline">등록·갱신</th><th class="vline">비고</th></tr></thead>`;
+  const body=tmData.map((t,ti_i)=>{
+    const ti=typeInfo(t);
+    const dateField=t.group==="madrid"?"renew":"regDate";
+    const dateVal=t.group==="madrid"?(t.renew||"—"):(t.regDate||"—");
+    return `<tr><td class="stickyc"><span class="badge ${ti.cls}">${ti.label}</span></td>
+      <td class="vline editable" data-tmfield="${ti_i}" data-tmf="country" title="클릭해서 수정">${t.country}</td>
+      <td class="vline editable" data-tmfield="${ti_i}" data-tmf="mark" title="클릭해서 수정">${t.mark}</td>
+      <td class="vline editable" data-tmfield="${ti_i}" data-tmf="cls" title="클릭해서 수정">${t.cls}</td>
+      <td class="vline editable" data-tmfield="${ti_i}" data-tmf="agent" title="클릭해서 수정">${t.agent}</td>
+      <td class="vline stedit" data-tmedit="${ti_i}" title="클릭해서 상태 변경">${badge(t.status[0],t.status[1])} <span class="ed-pencil">✎</span></td>
+      <td class="vline editable" data-tmfield="${ti_i}" data-tmf="detail" style="white-space:normal;min-width:150px" title="클릭해서 수정">${t.detail}</td>
+      <td class="vline num editable" data-tmfield="${ti_i}" data-tmf="no" title="클릭해서 수정">${t.no}</td>
+      <td class="vline num editable" data-tmfield="${ti_i}" data-tmf="${dateField}" title="클릭해서 수정">${dateVal}</td>
+      <td class="vline editable" data-tmfield="${ti_i}" data-tmf="note" style="white-space:normal;min-width:150px;color:var(--ink-2)" title="클릭해서 수정">${t.note}</td></tr>`;
+  }).join("");
+  const tableHTML=`<div class="tablecard"><div class="scrollx"><table class="vtable">${head}<tbody>${body}</tbody></table></div></div>`;
+  document.getElementById("tm").innerHTML=shell("tm","상표 현황","구분(국내/마드리드/개별) · 03류 중심",cardHTML,tableHTML,
+    `<div class="banner">👉 표의 <b>모든 칸</b>을 눌러 직접 수정할 수 있습니다. 현황(상태)은 ✎로 선택합니다.</div>`);
+}
+/* 상표 상태 선택지 */
+const TM_STATUS=[["done","등록완료"],["prog","진행중"],["check","확인필요"],["hold","홀딩"],["risk","거절대응"],["gone","포기"]];
+
+
+/* ============================================================
+   전역: 반응형 판단 + 네비 정의
+============================================================ */
+const isMobile = window.matchMedia("(max-width:1080px)").matches;
+
+const NAV=[
+  {group:"업무",items:[
+    {id:"today",label:"금일 업무",icon:'<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>'},
+    {id:"weekly",label:"주간 업무보고",icon:'<path d="M9 11H3v10h6zM21 3h-6v18h6zM15 8H9v13h6z"/>'},
+  ]},
+  {group:"현황",items:[
+    {id:"dash",label:"대시보드",icon:'<rect x="3" y="3" width="7" height="9" rx="1"/><rect x="14" y="3" width="7" height="5" rx="1"/><rect x="14" y="12" width="7" height="9" rx="1"/><rect x="3" y="16" width="7" height="5" rx="1"/>'},
+    {id:"productinfo",label:"제품 정보",icon:'<path d="M6 2h9l5 5v13a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V3a1 1 0 0 1 1-1z"/><path d="M14 2v6h6"/>',cnt:productInfo.length},
+    {id:"progress",label:"제품 진행 현황",icon:'<path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>',cnt:products.length},
+    {id:"clinical",label:"임상",icon:'<path d="M9 2v6l-4 8a2 2 0 0 0 2 3h10a2 2 0 0 0 2-3l-4-8V2"/><path d="M8 2h8"/>',cnt:clinicalStudies.length},
+    {id:"cert",label:"인증 현황",icon:'<path d="M12 15a4 4 0 1 0 0-8 4 4 0 0 0 0 8z"/><path d="M8.5 14l-1.5 7 5-3 5 3-1.5-7"/>'},
+  ]},
+  {group:"운영",items:[
+    {id:"cost",label:"원가 · 마진",icon:'<line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>'},
+    {id:"order",label:"발주·입고",icon:'<rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>'},
+    {id:"tm",label:"상표 현황",icon:'<path d="M20.6 3.4a2 2 0 0 0-2.8 0l-9.2 9.2a2 2 0 0 0-.5.9L7 18l4.5-1.1a2 2 0 0 0 .9-.5l9.2-9.2a2 2 0 0 0 0-2.8z"/>',cnt:tmData.length},
+  ]},
+  {group:"리서치",items:[
+    {id:"trend",label:"화장품 트렌드",icon:'<path d="M23 6l-9.5 9.5-5-5L1 18"/><path d="M17 6h6v6"/>'},
+    {id:"ingredient",label:"원료 서치",icon:'<path d="M10 2v7.5L4.5 19a2 2 0 0 0 1.7 3h11.6a2 2 0 0 0 1.7-3L14 9.5V2"/><path d="M8.5 2h7"/>'},
+  ]},
+  {group:"자료",items:[
+    {id:"files",label:"파일 관리",icon:'<path d="M4 4h5l2 2h9a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z"/>'},
+  ]},
+];
+const TAB_TITLE={today:"금일 업무",weekly:"주간 업무보고",dash:"대시보드",productinfo:"제품 정보",progress:"제품 진행 현황",clinical:"임상",cert:"인증 현황",cost:"원가 · 마진",order:"발주·입고",tm:"상표 현황",trend:"화장품 트렌드",ingredient:"원료 서치",files:"파일 관리"};
+const RAIL_TABS=new Set(["dash"]); // 우측 레일 노출 탭
+
+/* ============================================================
+   파일 데이터 (샘플 · 링크 관리)
+============================================================ */
+const folders=[
+  {id:"규제·인증",name:"규제·인증",color:"c-teal",size:"CPNP/MoCRA/비건"},
+  {id:"임상 리포트",name:"임상 리포트",color:"c-violet",size:"임상계획서·보고서"},
+  {id:"문안·라벨",name:"문안·라벨",color:"c-amber",size:"전성분·표기 시안"},
+  {id:"부자재·패키지",name:"부자재·패키지",color:"c-pink",size:"용기·라벨·타임스케줄"},
+  {id:"바이어·수출",name:"바이어·수출",color:"",size:"Cosmoprof 상담"},
+];
+const files=[
+  {type:"pdf",name:"Pure Hydra Blue PDRN Cleanser 125ml 라벨.pdf",folder:"문안·라벨",by:"이",date:"2026.03.18",link:true},
+  {type:"pdf",name:"3종 스킨케어 병행 임상 리포트 (KSRC).pdf",folder:"임상 리포트",by:"이",date:"2026.04.14",link:true},
+  {type:"doc",name:"3종 스킨케어 임상계획서.docx",folder:"임상 리포트",by:"이",date:"2026.03.20",link:true},
+  {type:"doc",name:"블루 클렌저 임상계획서.docx",folder:"임상 리포트",by:"이",date:"2026.03.05",link:true},
+  {type:"doc",name:"PDRN 선스크린 임상계획서.docx",folder:"임상 리포트",by:"이",date:"2026.03.12",link:true},
+  {type:"doc",name:"글로우 라인 임상계획서.docx",folder:"임상 리포트",by:"이",date:"2025.12.20",link:true},
+  {type:"doc",name:"EU CPNP 등록 신청서 - PDRN 라인.docx",folder:"규제·인증",by:"이",date:"2026.03.06",link:true},
+  {type:"doc",name:"상표 출원 현황 정리 (국내·마드리드·개별).docx",folder:"규제·인증",by:"이",date:"2026.05.02",link:true},
+  {type:"xls",name:"2026 상반기 발주 캘린더.xlsx",folder:"부자재·패키지",by:"이",date:"2026.02.20",link:true},
+  {type:"img",name:"젤리 클렌저 에어리스 펌프 용기 도면.png",folder:"부자재·패키지",by:"이",date:"2026.03.22",link:true},
+  {type:"xls",name:"퓨어 하이드라 워터 토너 타임스케줄.xlsx",folder:"부자재·패키지",by:"이",date:"2026.07.02",link:true},
+  {type:"xls",name:"퓨어 하이드라 블루 PDRN 클렌저 타임스케줄.xlsx",folder:"부자재·패키지",by:"이",date:"2026.07.02",link:true},
+  {type:"pdf",name:"Cosmoprof CBE ASEAN 2026 바이어 상담 31건.pdf",folder:"바이어·수출",by:"이",date:"2026.06.26",link:true},
+];
+
+/* ============================================================
+   대시보드 (요약카드 + 할일 + 라인진행 / 우측: 캘린더+이벤트)
+============================================================ */
+/* 주간 날씨 데이터 (샘플 · 실제 연동은 후속 과제) */
+const weekWeather=[
+  {d:"일",ic:"☀️",hi:24,lo:14,desc:"맑음"},
+  {d:"월",ic:"⛅",hi:23,lo:15,desc:"구름조금"},
+  {d:"화",ic:"🌧️",hi:19,lo:13,desc:"비"},
+  {d:"수",ic:"🌧️",hi:18,lo:12,desc:"비"},
+  {d:"목",ic:"⛅",hi:21,lo:13,desc:"구름많음"},
+  {d:"금",ic:"☀️",hi:25,lo:15,desc:"맑음"},
+  {d:"토",ic:"☀️",hi:26,lo:16,desc:"맑음"},
+];
+
+/* 날짜별 일정 (선택 시 표시) — 키: 4월 일자 */
+const scheduleByDate={
+  8:[{p:"blue",t:"PDRN 선스크린 임상 결과 수령",m:"CL-03 · 저자극 영문 리포트"},
+     {p:"amber",t:"젤리 클렌저 견적 비딩 마감",m:"용기 제조사 3사 견적"}],
+  14:[{p:"blue",t:"블루 PDRN 클렌저 유효성 리포트",m:"CL-02 · 영문 수령"}],
+  18:[{p:"amber",t:"PDRN 3종 문안 회신 마감",m:"제조사·CPNP 등록업체 회신"},
+      {p:"violet",t:"상표 대리인 정기 미팅",m:"해외 출원 진행 점검"}],
+  22:[{p:"rose",t:"딥 배리어 크림 재발주 검토",m:"F-09 · 완제품 재고 0"}],
+  24:[{p:"amber",t:"블루 클렌저 완제품 입고",m:"7/24 · 코스모코스"}],
+  30:[{p:"amber",t:"플러스 선스크린 봉합라벨 입고",m:"부자재 입고 예정"},
+      {p:"blue",t:"월말 진행 현황 정리",m:"제품 6종 상태 업데이트"}],
+};
+
+/* 확인 사항 기본값 (저장된 내용 없을 때만) */
+const checksDefault=[
+  {p:"amber",title:"블루 PDRN 클렌저 · CPNP 라벨 검토 회신 대기",meta:"네모브랜즈 · MoCRA는 7/7 등록완료 · 라벨만 검토중",tag:"인증",tc:"t-amber",goto:"cert"},
+  {p:"amber",title:"워터 토너 튜브 2차 고주파실링 CT 결과 확인",meta:"그린코스 · 6/25 결과 송부 · 검토 필요",tag:"발주",tc:"t-amber",goto:"order"},
+  {p:"amber",title:"할랄 인증 가능여부 · 제조사 3곳 회신 취합",meta:"코스모코스·메가코스·그린코스 (6월 문의)",tag:"인증",tc:"t-amber",goto:"cert"},
+  {p:"rose",title:"워터 세럼·크림 비건 인증 만료",meta:"2026.4.1~4.2 만료 · 갱신 접수 필요",tag:"인증",tc:"t-rose",goto:"cert"},
+  {p:"blue",title:"토너·세럼·젤크림 신규 임상 견적 협의중",meta:"휴먼피부임상시험센터 (6/17~)",tag:"임상",tc:"t-blue",goto:"clinical"},
+  {p:"violet",title:"젤리 클렌징 오일 개발 · 컨셉원료 검토",meta:"그린코스 샘플 추가·컨셉 제안 (4월~)",tag:"문안",tc:"t-violet",goto:"progress"},
+];
+/* 탭 → 색/태그 매핑 (직접 추가 시 사용) */
+const TAB_META={
+  order:{tc:"t-amber",p:"amber",tag:"발주"},
+  cert:{tc:"t-rose",p:"rose",tag:"인증"},
+  progress:{tc:"t-amber",p:"amber",tag:"문안"},
+  tm:{tc:"t-violet",p:"violet",tag:"상표"},
+  clinical:{tc:"t-blue",p:"blue",tag:"임상"},
+  cost:{tc:"t-rose",p:"rose",tag:"원가"},
+  none:{tc:"",p:"blue",tag:"기타"},
+};
+function checksKey(){return "fiorese_checks";}
+function loadChecks(){ try{const s=localStorage.getItem(checksKey());if(s)return JSON.parse(s);}catch(e){} return checksDefault.map(c=>({...c})); }
+function saveChecks(){ try{localStorage.setItem(checksKey(),JSON.stringify(checks));}catch(e){} saveToSheet(); }
+let checks=loadChecks();
+
+function buildDash(){
+  const total=products.length;
+  const stockOut=orderData.filter(o=>o.total==="0").length;
+  const veganExp=certData.filter(c=>c.status[0]==="risk").length;
+
+  // 주간 날씨 위젯
+  const todayIdx=3; // 수요일 가정
+  const weatherHTML=weekWeather.map((w,i)=>`<div class="wday ${i===todayIdx?'today':''}">
+    <div class="wd">${w.d}</div><div class="wic">${w.ic}</div>
+    <div class="wt"><span class="whi">${w.hi}°</span><span class="wlo">${w.lo}°</span></div></div>`).join("");
+
+  const checkHTML=checks.length?checks.map((t,i)=>`<div class="lrow p-${t.p}">
+    <div class="lk"></div>
+    <div class="lbody" data-goto="${t.goto}"><div class="ltitle">${t.title}</div><div class="lmeta">${t.meta}</div></div>
+    <span class="tag ${t.tc}">${t.tag}</span>
+    <button class="tdel" data-check-del="${i}" aria-label="삭제">✕</button></div>`).join("")
+    :`<div class="rempty">확인 사항이 없습니다. 아래에서 추가하세요.</div>`;
+
+  document.getElementById("dash").innerHTML=`
+    <div class="page-h"><div><div class="pt">대시보드</div><div class="ps">FIORESE 상품기획 업무 현황 · 2026 상반기</div></div></div>
+
+    <div class="block">
+      <div class="block-h"><div class="bt">📥 메일 · 파일 등록 <span style="font-weight:600;color:var(--ink-3)">여기서 한 번에</span></div></div>
+      <div class="emldrop" id="upDrop">
+        <div class="emld-ic">📩</div>
+        <div class="emld-t">파일을 여기로 끌어다 놓거나 눌러서 선택</div>
+        <input type="file" id="upInput" multiple style="display:none">
+      </div>
+      <div class="savehint" id="upHint" style="padding:0 2px">메일(.eml)을 올리면 금일 업무에 추가되고 관련 탭 확인 알림이 뜹니다. 다른 파일도 등록할 수 있어요.</div>
+    </div>
+
+    <div class="block">
+      <div class="block-h"><div class="bt">🌤 이번 주 날씨</div><span class="bmore">수원 · 샘플</span></div>
+      <div class="card weather-card">${weatherHTML}</div>
+    </div>
+
+    <div class="block">
+      <div class="block-h"><div class="bt">✅ 확인 사항</div><span class="bmore">${checks.length}건</span></div>
+      <div class="card">${checkHTML}</div>
+      <div class="card" style="padding:12px;margin-top:8px">
+        <div class="addrow">
+          <select id="ckTab" class="tinput" style="max-width:96px">
+            <option value="none">기타</option><option value="order">발주</option><option value="cert">인증</option>
+            <option value="progress">문안</option><option value="tm">상표</option><option value="clinical">임상</option><option value="cost">원가</option>
+          </select>
+          <input id="ckTitle" class="tinput" placeholder="확인할 내용" style="flex:1;min-width:130px">
+          <input id="ckMeta" class="tinput" placeholder="메모 (선택)" style="flex:1;min-width:110px">
+          <button class="addbtn" id="ckAdd">추가</button>
+        </div>
+        <div class="savehint" id="ckHint">＋ 확인 사항을 직접 추가·삭제할 수 있어요. 자동으로 저장됩니다.</div>
+      </div>
+    </div>`;
+  bindUploader();
+}
+
+/* 우측 레일 — 날짜 선택 캘린더 + 선택일 일정 */
+let selectedDate=8;
+function buildRail(){
+  document.getElementById("rail").innerHTML=`
+    <div class="block">
+      <div class="block-h"><div class="bt">📅 2026년 4월</div></div>
+      <div class="cal"><div class="cal-grid" id="calGrid"></div></div>
+    </div>
+    <div class="block">
+      <div class="block-h"><div class="bt" id="schHead">4월 ${selectedDate}일 일정</div><span class="bmore" id="schCount"></span></div>
+      <div id="schList"></div>
+    </div>`;
+  renderCalendar();
+  renderSchedule();
+}
+function renderCalendar(){
+  const weeks=["일","월","화","수","목","금","토"];
+  const firstDow=3, daysInMonth=30, today=8;
+  let cells=weeks.map(w=>`<div class="cw">${w}</div>`).join("");
+  for(let i=0;i<firstDow;i++)cells+=`<div class="cal-cell dim"></div>`;
+  for(let d=1;d<=daysInMonth;d++){
+    const cls=[d===today?"today":"",scheduleByDate[d]?"has":"",d===selectedDate?"sel":""].join(" ");
+    cells+=`<div class="cal-cell ${cls}" data-day="${d}">${d}</div>`;
+  }
+  document.getElementById("calGrid").innerHTML=cells;
+}
+function renderSchedule(){
+  const list=scheduleByDate[selectedDate]||[];
+  document.getElementById("schHead").textContent=`4월 ${selectedDate}일 일정`;
+  document.getElementById("schCount").textContent=list.length?`${list.length}건`:"";
+  document.getElementById("schList").innerHTML=list.length
+    ? list.map(e=>`<div class="revent"><span class="rdot p-${e.p}"></span><div class="rbody"><div class="rt">${e.t}</div><div class="rm">${e.m}</div></div></div>`).join("")
+    : `<div class="rempty">선택한 날짜에 등록된 일정이 없습니다.</div>`;
+}
+
+/* ============================================================
+   파일 관리 (폴더 선택 → 목록, 파일 미리보기 모달)
+============================================================ */
+let selectedFolder="all";
+const typeLabel={pdf:"PDF",doc:"DOC",xls:"XLS",img:"IMG",lnk:"LNK"};
+function filesInFolder(fid){return fid==="all"?files:files.filter(f=>f.folder===fid);}
+
+function buildFiles(){
+  renderFolderGrid();
+  renderFileList();
+}
+function renderFolderGrid(){
+  const allCnt=files.length;
+  const grid=`
+    <div class="folder ${selectedFolder==='all'?'sel':''}" data-folder="all">
+      <div class="fico c-teal"></div><div class="fname">전체</div><div class="fmeta">${allCnt}개 파일</div></div>
+    ${folders.map(f=>{
+      const cnt=files.filter(x=>x.folder===f.id).length;
+      return `<div class="folder ${f.color} ${selectedFolder===f.id?'sel':''}" data-folder="${f.id}">
+        <div class="fico"></div><div class="fname">${f.name}</div><div class="fmeta">${cnt}개 파일 · ${f.size}</div></div>`;
+    }).join("")}`;
+  const wrap=document.getElementById("files");
+  wrap.innerHTML=`
+    <div class="page-h">
+      <div><div class="pt">파일 관리</div><div class="ps">폴더를 눌러 자료를 확인하고, 🔍를 눌러 미리보기 · 링크 기반 정리</div></div>
+    </div>
+    <div class="banner info">👉 실제 파일은 Google Drive·네이버웍스에 두고 여기서는 <b>링크로 정리·관리</b>합니다. 구글드라이브 실연동·파일 내용 미리보기는 다음 단계에서 붙습니다.</div>
+    <div class="block-h"><div class="bt">폴더</div></div>
+    <div class="folder-grid" id="folderGrid">${grid}</div>
+    <div class="block-h"><div class="bt" id="fileListTitle"></div><span class="bmore" id="fileListCount"></span></div>
+    <div class="tablecard" id="fileList"></div>`;
+}
+function renderFileList(){
+  const list=filesInFolder(selectedFolder);
+  const title=selectedFolder==="all"?"전체 파일":selectedFolder;
+  document.getElementById("fileListTitle").textContent=title;
+  document.getElementById("fileListCount").textContent=`${list.length}개`;
+  document.getElementById("fileList").innerHTML=list.length
+    ? list.map((f,i)=>`<div class="file-row">
+        <div class="ftype ft-${f.type}">${typeLabel[f.type]}</div>
+        <div class="finfo"><div class="fn">${f.name}</div><div class="fm">${f.folder}${f.link?' · 🔗 링크 연결됨':''}</div></div>
+        <div class="fby"><span class="fav">${f.by}</span></div>
+        <div class="fdate">${f.date}</div>
+        <button class="fpreview" data-file="${f.name}" title="미리보기">🔍</button></div>`).join("")
+    : `<div class="rempty" style="padding:24px">이 폴더에 파일이 없습니다.</div>`;
+}
+
+/* 파일 미리보기 모달 */
+function openPreview(fileName){
+  const f=files.find(x=>x.name===fileName);
+  const meta=f||{name:fileName,type:fileName.split('.').pop(),folder:"-",by:"이",date:"-"};
+  const t=(meta.type||"").toLowerCase();
+  const tt=t.includes("xls")?"xls":t.includes("doc")?"doc":t.includes("pdf")?"pdf":t.includes("png")||t.includes("img")||t.includes("jpg")?"img":"doc";
+  document.getElementById("previewBody").innerHTML=`
+    <div class="pv-file">
+      <div class="ftype ft-${tt}" style="width:52px;height:52px;font-size:15px;border-radius:12px">${typeLabel[tt]||"DOC"}</div>
+      <div><div class="pv-name">${meta.name}</div><div class="pv-meta">${meta.folder} · 수정 ${meta.date} · ${meta.by}</div></div>
+    </div>
+    <div class="pv-holder">
+      <div class="pv-holder-ic">📄</div>
+      <div class="pv-holder-t">파일 내용 미리보기</div>
+      <div class="pv-holder-m">실제 파일 내용은 <b>구글드라이브 연동 후</b> 이 자리에 표시됩니다.<br>지금은 링크·정보 관리 단계입니다.</div>
+    </div>`;
+  document.getElementById("previewModal").classList.add("show");
+}
+function closePreview(){document.getElementById("previewModal").classList.remove("show");}
+
+/* ============================================================
+   금일 업무 (오늘 할 일 + 직접 입력 · 세션 한정)
+============================================================ */
+/* 금일 업무 기본값 (저장된 내용이 없을 때만 사용) */
+/* ============================================================
+   알림 시스템 (메일 등록 시 관련 탭 감지 → 알림)
+============================================================ */
+const NOTIF_RULES=[
+  {tab:"order",  label:"발주·입고", icon:"📦", kw:["입고","발주","납기","용기","튜브","캡","펌프","부자재","단상자","카톤","재고","생산"]},
+  {tab:"tm",     label:"상표 현황",   icon:"™️", kw:["상표","출원","등록","거절","마드리드","이의","갱신","trademark"]},
+  {tab:"cert",   label:"인증 현황",   icon:"✅", kw:["인증","cpnp","mocra","비건","vegan","할랄","등록증","갱신","만료"]},
+  {tab:"clinical",label:"임상",       icon:"🧪", kw:["임상","리포트","시험","자극","유효성","ksrc","보고서"]},
+  {tab:"progress",label:"제품 진행 현황",icon:"📝",kw:["라벨","문안","전성분","디자인","처방","시안","label"]},
+  {tab:"cost",   label:"원가 · 마진", icon:"💰", kw:["원가","단가","견적","공급가","마진","가격"]},
+];
+function detectTabs(text){
+  const low=(text||"").toLowerCase();
+  const hits=[];
+  NOTIF_RULES.forEach(r=>{ if(r.kw.some(k=>low.includes(k.toLowerCase()))) hits.push(r); });
+  return hits;
+}
+function notifKey(){return "fiorese_notifs";}
+function loadNotifs(){ try{const s=localStorage.getItem(notifKey());if(s)return JSON.parse(s);}catch(e){} return []; }
+function saveNotifs(){ try{localStorage.setItem(notifKey(),JSON.stringify(notifs));}catch(e){} saveToSheet(); }
+let notifs=loadNotifs();
+
+/* 메일 등록 시 호출: 제목/보낸사람 기반으로 관련 탭 알림 생성 */
+function addNotifsForMail(subject,from){
+  const hits=detectTabs(subject+" "+from);
+  hits.forEach(r=>{
+    notifs.unshift({tab:r.tab,label:r.label,icon:r.icon,title:`${r.label} 확인 필요`,msg:subject,time:Date.now(),read:false});
+  });
+  if(hits.length){ saveNotifs(); renderNotifDot(); }
+  return hits.length;
+}
+function renderNotifDot(){
+  const dot=document.getElementById("notifDot");
+  if(dot) dot.style.display=notifs.some(n=>!n.read)?"":"none";
+}
+function renderNotifPanel(){
+  const panel=document.getElementById("notifPanel");
+  if(!panel) return;
+  const list=notifs.length?notifs.map((n,i)=>`<div class="notif-item" data-notif="${i}">
+    <div class="ni-ic">${n.icon}</div>
+    <div class="ni-body"><div class="ni-t">${n.title}</div><div class="ni-m">📧 ${n.msg}</div></div>
+    <span class="ni-go">›</span></div>`).join("")
+    :`<div class="notif-empty">새 알림이 없습니다.<br>메일(.eml)을 등록하면 관련 탭 확인 알림이 여기 표시됩니다.</div>`;
+  panel.innerHTML=`
+    <div class="notif-h"><span class="nt">🔔 업데이트 알림</span>${notifs.length?'<button class="nclear" id="notifClear">모두 지우기</button>':''}</div>
+    <div class="notif-list">${list}</div>`;
+}
+function toggleNotifPanel(){
+  const panel=document.getElementById("notifPanel");
+  const open=panel.classList.contains("show");
+  if(open){ panel.classList.remove("show"); }
+  else{ renderNotifPanel(); panel.classList.add("show");
+    // 열면 읽음 처리
+    notifs.forEach(n=>n.read=true); saveNotifs(); renderNotifDot();
+  }
+}
+
+/* 금일 업무 기본값 (저장된 내용이 없을 때만 사용) */
+const todayDefault=[
+  {done:false,src:"메일",title:"NEMO GmbH 라벨 회신 확인",meta:"Pure Hydra Blue PDRN Cleanser · EU RP"},
+  {done:false,src:"메일",title:"코스모코스 튜브 입고 일정 재확인",meta:"블루 클렌저 · 5/8 예정"},
+  {done:true,src:"구두",title:"퀸스 글로우 완제품 추가생산 논의",meta:"팀장 구두 지시 · 재고 168"},
+  {done:false,src:"카톡",title:"젤리 클렌저 용기 견적 3사 취합",meta:"에어리스 펌프 · 단가 비교"},
+  {done:false,src:"메일",title:"CBE ASEAN 팔로업 메일 발송",meta:"Global Step · B.T.S. Global"},
+];
+/* 저장 열쇠 (오늘 날짜별로 저장) */
+function todayKey(){const d=new Date();return "fiorese_today_"+d.getFullYear()+"-"+(d.getMonth()+1)+"-"+d.getDate();}
+/* 저장하기 / 불러오기 (기기 안에만 저장 · 외부로 안 나감) */
+function saveToday(){ try{ localStorage.setItem(todayKey(), JSON.stringify(todayTasks)); }catch(e){} saveToSheet(); }
+function loadToday(){
+  try{ const s=localStorage.getItem(todayKey()); if(s) return JSON.parse(s); }catch(e){}
+  return todayDefault.map(t=>({...t}));
+}
+let todayTasks=loadToday();
+
+function buildToday(){
+  const today=new Date();
+  const dstr=`${today.getMonth()+1}월 ${today.getDate()}일`;
+  render();
+  function render(){
+    const rows=todayTasks.length?todayTasks.map((t,i)=>`<div class="lrow ${t.done?'tdone':''}">
+      <div class="tchk ${t.done?'on':''}" data-today-chk="${i}">${t.done?'✓':''}</div>
+      <div class="lbody" data-today-edit="${i}" style="cursor:pointer"><div class="ltitle" style="${t.done?'text-decoration:line-through;color:var(--ink-3)':''}">${t.title}</div><div class="lmeta">${t.meta}</div></div>
+      <span class="tag ${t.src==='메일'?'t-blue':t.src==='카톡'?'t-amber':'t-violet'}">${t.src}</span>
+      <button class="tdel" data-today-del="${i}" aria-label="삭제">✕</button>
+    </div>`).join(""):`<div class="rempty">오늘 등록된 업무가 없습니다. 아래에서 추가하세요.</div>`;
+    document.getElementById("today").innerHTML=`
+      <div class="page-h"><div><div class="pt">금일 업무</div><div class="ps">${dstr} · 오늘 처리할 업무</div></div></div>
+      <div class="banner info">👉 카톡·구두로 진행된 내용을 아래에서 직접 추가하세요. 입력한 내용은 <b>구글 시트에 자동 저장</b>되어, 컴퓨터·아이폰 어디서 열어도 똑같이 보입니다.</div>
+      <div class="block">
+        <div class="block-h"><div class="bt">✅ 오늘 할 일</div><span class="bmore">${todayTasks.filter(t=>!t.done).length}건 남음 · 총 ${todayTasks.length}건</span></div>
+        <div class="card">${rows}</div>
+      </div>
+      <div class="block">
+        <div class="block-h"><div class="bt">➕ 업무 직접 추가 <span style="font-weight:600;color:var(--ink-3)">(카톡·구두)</span></div></div>
+        <div class="card" style="padding:14px">
+          <div class="addrow">
+            <select id="tSrc" class="tinput" style="max-width:90px"><option>구두</option><option>카톡</option><option>메일</option></select>
+            <input id="tTitle" class="tinput" placeholder="업무 내용 입력" style="flex:1">
+            <input id="tMeta" class="tinput" placeholder="메모 (선택)" style="flex:1;min-width:120px">
+            <button class="addbtn" id="tAdd">추가</button>
+          </div>
+          <div class="savehint" id="saveHint">＋ 추가하거나 완료 체크하면 자동으로 저장됩니다. (메일은 대시보드에서 등록)</div>
+        </div>
+      </div>`;
+  }
+  function flashSaved(){
+    const h=document.getElementById("saveHint");
+    if(h){h.textContent="✓ 저장되었습니다.";h.classList.add("ok");setTimeout(()=>{h.textContent="＋ 추가하거나 완료 체크하면 자동으로 저장됩니다.";h.classList.remove("ok");},1500);}
+  }
+  const sec=document.getElementById("today");
+  sec.onclick=e=>{
+    const chk=e.target.closest("[data-today-chk]");
+    if(chk){const i=+chk.dataset.todayChk;todayTasks[i].done=!todayTasks[i].done;saveToday();render();flashSaved();return;}
+    const del=e.target.closest("[data-today-del]");
+    if(del){const i=+del.dataset.todayDel;todayTasks.splice(i,1);saveToday();render();flashSaved();return;}
+    const ed=e.target.closest("[data-today-edit]");
+    if(ed){const i=+ed.dataset.todayEdit;openItemEdit({type:"today",i},todayTasks[i].title,todayTasks[i].meta,"금일 업무 수정");return;}
+    if(e.target.id==="tAdd"){
+      const title=document.getElementById("tTitle").value.trim();
+      const src=document.getElementById("tSrc").value;
+      const meta=document.getElementById("tMeta").value.trim()||"직접 추가";
+      if(title){todayTasks.push({done:false,src,title,meta});saveToday();render();flashSaved();}
+      return;
+    }
+  };
+  sec.onkeydown=e=>{
+    if(e.key==="Enter"&&e.target.id==="tTitle"){document.getElementById("tAdd").click();}
+  };
+}
+
+/* MIME 헤더 디코딩 (=?UTF-8?B?...?= / =?UTF-8?Q?...?=) */
+function decodeMimeHeader(str){
+  if(!str) return "";
+  str=str.replace(/=\?([^?]+)\?([BbQq])\?([^?]*)\?=/g,(m,charset,enc,text)=>{
+    try{
+      if(enc.toUpperCase()==="B"){
+        const bin=atob(text.replace(/\s/g,""));
+        const bytes=Uint8Array.from(bin,c=>c.charCodeAt(0));
+        return new TextDecoder(charset).decode(bytes);
+      }else{
+        // Q 인코딩
+        let t=text.replace(/_/g," ").replace(/=([0-9A-Fa-f]{2})/g,(x,h)=>String.fromCharCode(parseInt(h,16)));
+        const bytes=Uint8Array.from(t,c=>c.charCodeAt(0));
+        return new TextDecoder(charset).decode(bytes);
+      }
+    }catch(e){return text;}
+  });
+  return str.replace(/\?=\s*=\?/g,"").trim();
+}
+/* .eml 원문에서 Subject/From/Date 추출 */
+function parseEml(raw){
+  // 헤더는 빈 줄 전까지. 접힌 헤더(다음 줄이 공백으로 시작) 펼치기
+  const headerPart=raw.split(/\r?\n\r?\n/)[0];
+  const unfolded=headerPart.replace(/\r?\n[ \t]+/g," ");
+  const lines=unfolded.split(/\r?\n/);
+  const get=name=>{
+    const line=lines.find(l=>l.toLowerCase().startsWith(name.toLowerCase()+":"));
+    return line?line.slice(line.indexOf(":")+1).trim():"";
+  };
+  let subject=decodeMimeHeader(get("Subject"));
+  let from=decodeMimeHeader(get("From"));
+  // From에서 이름만 추출 (홍길동 <a@b.com> → 홍길동)
+  const nameMatch=from.match(/^\s*"?([^"<]+?)"?\s*</);
+  if(nameMatch) from=nameMatch[1].trim();
+  else from=from.replace(/[<>]/g,"").trim();
+  // Date 간략화
+  let date=get("Date");
+  if(date){ const d=new Date(date); if(!isNaN(d)) date=`${d.getMonth()+1}/${d.getDate()}`; }
+  return {subject,from,date};
+}
+
+/* ===== 전역: .eml 업로드 처리 (대시보드에서 사용) ===== */
+function flashUploadMsg(msg){
+  const h=document.getElementById("upHint");
+  if(h){h.textContent="✓ "+msg;h.classList.add("ok");setTimeout(()=>{h.textContent="메일(.eml)을 올리면 금일 업무에 추가되고 관련 탭 확인 알림이 뜹니다.";h.classList.remove("ok");},2400);}
+}
+function handleEmlFiles(fileList){
+  const all=[...fileList];
+  if(!all.length)return;
+  const emls=all.filter(f=>/\.eml$/i.test(f.name)||f.type==="message/rfc822");
+  const others=all.filter(f=>!(/\.eml$/i.test(f.name)||f.type==="message/rfc822"));
+  let added=0, notified=0;
+  // 메일 외 파일: 파일명으로 금일 업무에 추가
+  others.forEach(f=>{
+    todayTasks.push({done:false,src:"파일",title:"📎 "+f.name,meta:"파일 등록 · "+(Math.round(f.size/1024))+"KB"});
+    added++;
+  });
+  if(!emls.length){
+    saveToday(); if(document.getElementById("today").innerHTML)buildToday();
+    flashUploadMsg(`파일 ${added}건 등록`); return;
+  }
+  let pending=emls.length;
+  emls.forEach(file=>{
+    const reader=new FileReader();
+    reader.onload=()=>{
+      const info=parseEml(reader.result);
+      if(info.subject){
+        todayTasks.push({done:false,src:"메일",title:info.subject,meta:(info.from?info.from:"")+(info.date?" · "+info.date:"")||"메일 등록"});
+        notified+=addNotifsForMail(info.subject,info.from);
+        added++;
+      }
+      if(--pending===0){ saveToday(); if(document.getElementById("today").innerHTML)buildToday();
+        flashUploadMsg(`${added}건 등록${notified?` · 관련 탭 알림 ${notified}건`:""}`); }
+    };
+    reader.onerror=()=>{ if(--pending===0){saveToday();if(document.getElementById("today").innerHTML)buildToday();flashUploadMsg(added+"건 등록됨");} };
+    reader.readAsText(file,"utf-8");
+  });
+}
+function bindUploader(){
+  const drop=document.getElementById("upDrop");
+  const finput=document.getElementById("upInput");
+  if(!drop||!finput) return;
+  drop.onclick=()=>finput.click();
+  finput.onchange=()=>{ handleEmlFiles(finput.files); finput.value=""; };
+  drop.ondragover=e=>{e.preventDefault();drop.classList.add("over");};
+  drop.ondragleave=()=>drop.classList.remove("over");
+  drop.ondrop=e=>{e.preventDefault();drop.classList.remove("over");handleEmlFiles(e.dataTransfer.files);};
+}
+
+/* ============================================================
+   주간 업무보고 (이번주 진행 / 다음주 예정)
+============================================================ */
+const weeklyDefault={
+  thisWeek:[
+    {t:"3종 스킨케어 임상 영문 리포트 수령",m:"CL-01 · KSRC · 저자극 판정"},
+    {t:"Pure Hydra Blue PDRN Cleanser EU 라벨 완성",m:"NEMO GmbH RP 확정"},
+    {t:"CBE ASEAN 바이어 상담 31건 정리",m:"보고서·PPT 작성 완료"},
+    {t:"발주 캘린더 부자재 입고 현황 업데이트",m:"용기/튜브 지연 4건 확인"},
+    {t:"상표 국내 3건 등록 완료 확인",m:"FIORESE · FIORESE 피오레스"},
+  ],
+  nextWeek:[
+    {t:"PDRN 선스크린 저자극 임상 결과 수령 예정",m:"CL-03 · 4/8 · 2종 공동",flag:"임상"},
+    {t:"PDRN 3종 문안 회신 마감 대응",m:"제조사·CPNP 등록업체 · 4/18",flag:"문안"},
+    {t:"딥 배리어 크림 재발주 진행",m:"F-09 · 완제품 재고 0",flag:"발주"},
+    {t:"젤리 클렌저 용기 최종 선정",m:"에어리스 펌프 튜브 방향",flag:"개발"},
+    {t:"인도네시아 상표 이의 대응 확인",m:"선등록상표 공존 주장 검토",flag:"상표"},
+  ],
+};
+function weeklyKey(){return "fiorese_weekly";}
+function loadWeekly(){ try{const s=localStorage.getItem(weeklyKey());if(s)return JSON.parse(s);}catch(e){} return JSON.parse(JSON.stringify(weeklyDefault)); }
+function saveWeekly(){ try{localStorage.setItem(weeklyKey(),JSON.stringify(weeklyData));}catch(e){} saveToSheet(); }
+let weeklyData=loadWeekly();
+function buildWeekly(){
+  function col(list,which){
+    return (list.length?list.map((x,i)=>`<div class="lrow p-${which==='nextWeek'?'amber':'done'}">
+      <div class="lk"></div>
+      <div class="lbody" data-wkedit="${which}:${i}" style="cursor:pointer"><div class="ltitle">${x.t}</div><div class="lmeta">${x.m}</div></div>
+      ${x.flag?`<span class="tag t-amber">${x.flag}</span>`:'<span class="tag" style="background:var(--done-soft);color:#12833d">완료</span>'}
+      <button class="tdel" data-wkdel="${which}:${i}" aria-label="삭제">✕</button>
+    </div>`).join(""):`<div class="rempty">항목이 없습니다. 아래에서 추가하세요.</div>`);
+  }
+  function adder(which){
+    return `<div class="card" style="padding:12px;margin-top:8px">
+      <div class="addrow">
+        <input class="tinput wk-t" data-wkadd-t="${which}" placeholder="업무 내용" style="flex:1;min-width:130px">
+        <input class="tinput wk-m" data-wkadd-m="${which}" placeholder="메모 (선택)" style="flex:1;min-width:100px">
+        <button class="addbtn" data-wkadd="${which}">추가</button>
+      </div>
+    </div>`;
+  }
+  document.getElementById("weekly").innerHTML=`
+    <div class="page-h"><div><div class="pt">주간 업무보고</div><div class="ps">이번 주 진행 · 다음 주 예정 (직접 추가·삭제 가능)</div></div></div>
+    <div class="wk-grid">
+      <div class="block">
+        <div class="block-h"><div class="bt">✅ 이번 주 진행</div><span class="bmore">${weeklyData.thisWeek.length}건</span></div>
+        <div class="card">${col(weeklyData.thisWeek,'thisWeek')}</div>
+        ${adder('thisWeek')}
+      </div>
+      <div class="block">
+        <div class="block-h"><div class="bt">📌 다음 주 예정 · 챙길 것</div><span class="bmore">${weeklyData.nextWeek.length}건</span></div>
+        <div class="card">${col(weeklyData.nextWeek,'nextWeek')}</div>
+        ${adder('nextWeek')}
+      </div>
+    </div>`;
+}
+
+/* ============================================================
+   화장품 트렌드 서치 (인증·규제·신제품 뉴스 — 샘플)
+============================================================ */
+const trendDefault=[
+  {cat:"규제",tag:"t-rose",title:"EU, CMR 물질 추가 지정 — 옴니버스 개정안 발효",src:"CosmeticsDesign-Europe",date:"2026.01.05",sum:"부속서 II·III 갱신. 해당 성분 사용 제품 재점검 필요.",
+   body:"EU가 화장품 규정(EC 1223/2009)의 부속서를 갱신하며 신규 CMR(발암·변이원성·생식독성) 물질을 추가 지정했습니다. 해당 성분을 사용하는 제품은 대체 원료 검토와 CPNP 등록 정보 갱신이 필요할 수 있습니다. FIORESE 수출 제품의 전성분을 대조해 영향 여부를 확인하는 것이 권장됩니다.",url:"https://www.cosmeticsdesign-europe.com/"},
+  {cat:"인증",tag:"t-blue",title:"미국 MoCRA 시설 등록 갱신 주기 안내",src:"FDA",date:"2026.01.03",sum:"2년 주기 갱신·제품 리스팅 업데이트 요건 재확인 권고.",
+   body:"미국 FDA가 MoCRA에 따른 시설 등록의 2년 주기 갱신과 제품 리스팅 업데이트 요건을 재안내했습니다. 등록 시설 정보와 성분·제품 리스팅이 최신 상태인지 점검이 필요합니다. 미국向 수출 제품이 있는 경우 등록 담당자와 갱신 일정을 확인하세요.",url:"https://www.fda.gov/cosmetics"},
+  {cat:"신제품",tag:"t-violet",title:"PDRN·엑소좀 결합 스킨부스터 화장품 급증",src:"장업신문",date:"2025.12.28",sum:"더마 코스메틱 카테고리에서 재생 콘셉트 경쟁 심화.",
+   body:"PDRN과 엑소좀을 결합한 재생·부스팅 콘셉트의 스킨케어 출시가 늘고 있습니다. 더마 코스메틱 시장에서 재생 소구 경쟁이 심화되는 흐름으로, FIORESE의 PDRN 라인 포지셔닝과 차별화 포인트를 점검할 시점입니다.",url:"https://www.jangup.com/"},
+  {cat:"트렌드",tag:"t-amber",title:"2026 뷰티 트렌드: 스킨 배리어·마이크로바이옴",src:"Mintel",date:"2025.12.20",sum:"장벽 강화·저자극 소구가 핵심 키워드로 지속.",
+   body:"2026년 뷰티 트렌드로 스킨 배리어 강화와 마이크로바이옴 케어가 핵심 키워드로 꼽혔습니다. 저자극·진정 소구가 계속 강세이며, 임상 근거 기반 클레임의 중요성이 커지고 있습니다. Glow & Barrier 라인의 소구 메시지에 참고할 수 있습니다.",url:"https://www.mintel.com/"},
+  {cat:"규제",tag:"t-rose",title:"ASEAN 화장품 통일규정(ACD) 라벨링 개정 논의",src:"ASEAN Cosmetic",date:"2025.12.15",sum:"성분 표기·클레임 기준 정비. 수출 라벨 사전 점검 권장.",
+   body:"ASEAN 화장품 통일규정(ACD)의 라벨링 관련 성분 표기·클레임 기준 정비가 논의되고 있습니다. ASEAN 수출 라벨의 표기 방식과 클레임이 개정 방향에 부합하는지 사전 점검이 권장됩니다.",url:"https://asean.org/"},
+  {cat:"인증",tag:"t-blue",title:"비건·할랄 동시 인증 수요 확대",src:"Premium Beauty News",date:"2025.12.10",sum:"할랄 시장 진입 위해 원료 단계 인증 관리 중요성 부각.",
+   body:"비건과 할랄 인증을 동시에 요구하는 시장 수요가 확대되고 있습니다. 특히 할랄 시장 진입을 위해서는 완제품뿐 아니라 원료 단계부터 인증 가능 여부를 관리하는 것이 중요합니다. 원료 서치 탭의 인증 가능 원료 목록과 연계해 검토할 수 있습니다.",url:"https://www.premiumbeautynews.com/"},
+];
+function trendKey(){return "fiorese_trend";}
+function loadTrend(){ try{const s=localStorage.getItem(trendKey());if(s)return JSON.parse(s);}catch(e){} return JSON.parse(JSON.stringify(trendDefault)); }
+function saveTrend(){ try{localStorage.setItem(trendKey(),JSON.stringify(trendData));}catch(e){} saveToSheet(); }
+let trendData=loadTrend();
+let trendSearch="";
+function buildTrend(){
+  const q=trendSearch.trim().toLowerCase();
+  const filtered=trendData.map((t,i)=>({t,i})).filter(({t})=>!q||
+    (t.title+" "+t.sum+" "+(t.body||"")+" "+t.cat+" "+t.src).toLowerCase().includes(q));
+  const cards=filtered.length?filtered.map(({t,i})=>`<div class="news-card" data-trend="${i}">
+    <button class="news-del" data-trenddel="${i}" aria-label="삭제">✕</button>
+    <div class="news-h"><span class="tag ${t.tag}">${t.cat}</span><span class="news-date">${t.date}</span></div>
+    <div class="news-t">${t.title}</div>
+    <div class="news-s">${t.sum}</div>
+    <div class="news-src">📰 ${t.src} <span class="news-more">자세히 ›</span></div>
+  </div>`).join(""):`<div class="rempty" style="grid-column:1/-1">검색 결과가 없습니다.</div>`;
+  document.getElementById("trend").innerHTML=`
+    <div class="page-h"><div><div class="pt">화장품 트렌드 서치</div><div class="ps">인증·규제·신제품 뉴스·학술 (직접 등록 가능)</div></div></div>
+    <div class="block">
+      <div class="trend-search"><span class="ts-ic">🔍</span><input id="trSearch" placeholder="트렌드 검색 (제목·내용·출처)" value="${trendSearch.replace(/"/g,'&quot;')}">${q?`<button class="ts-clear" id="trSearchClear">✕</button>`:''}</div>
+    </div>
+    <div class="banner info">👉 카드를 누르면 상세·원문 링크가 열립니다. 아래에서 <b>뉴스를 직접 등록</b>할 수 있어요(제목·내용·링크).</div>
+    <div class="block">
+      <div class="block-h"><div class="bt">➕ 트렌드 뉴스 추가</div></div>
+      <div class="card" style="padding:13px">
+        <div class="addrow" style="flex-wrap:wrap">
+          <select id="trAddCat" class="tinput" style="max-width:92px"><option value="규제">규제</option><option value="인증">인증</option><option value="신제품">신제품</option><option value="트렌드">트렌드</option></select>
+          <input id="trAddTitle" class="tinput" placeholder="제목" style="flex:1;min-width:150px">
+          <input id="trAddSrc" class="tinput" placeholder="출처 (예: FDA)" style="max-width:130px">
+          <input id="trAddUrl" class="tinput" placeholder="기사 링크 (https://...)" style="flex:1;min-width:150px">
+          <input id="trAddSum" class="tinput" placeholder="한 줄 요약" style="flex:1;min-width:150px">
+          <input id="trAddBody" class="tinput" placeholder="상세 내용 (선택)" style="flex:1;min-width:150px">
+          <button class="addbtn" id="trAdd">추가</button>
+        </div>
+      </div>
+    </div>
+    <div class="news-grid">${cards}</div>`;
+  const si=document.getElementById("trSearch");
+  if(si){ si.oninput=()=>{ trendSearch=si.value; const pos=si.selectionStart; buildTrend();
+    const ns=document.getElementById("trSearch"); if(ns){ns.focus();try{ns.setSelectionRange(pos,pos);}catch(e){}} }; }
+}
+/* 트렌드 상세 팝업 */
+function openTrend(i){
+  const t=trendData[i];
+  document.getElementById("trendCat").className="tag "+t.tag;
+  document.getElementById("trendCat").textContent=t.cat;
+  document.getElementById("trendDate").textContent=t.date;
+  document.getElementById("trendTitle").textContent=t.title;
+  document.getElementById("trendBody").textContent=t.body;
+  document.getElementById("trendSrc").textContent="📰 출처: "+t.src;
+  const link=document.getElementById("trendLink");
+  link.href=t.url; link.style.display=t.url?"":"none";
+  document.getElementById("trendModal").classList.add("show");
+}
+function closeTrend(){document.getElementById("trendModal").classList.remove("show");}
+
+/* ===== 금일·주간 항목 편집 모달 ===== */
+let itemEditCtx=null; // {type:'today'|'weekly', ...}
+function openItemEdit(ctx,title,meta,heading){
+  itemEditCtx=ctx;
+  document.getElementById("itemEditTitle").textContent=heading||"항목 수정";
+  document.getElementById("itemEditT").value=title||"";
+  document.getElementById("itemEditM").value=meta||"";
+  document.getElementById("itemEditModal").classList.add("show");
+  setTimeout(()=>document.getElementById("itemEditT").focus(),50);
+}
+function closeItemEdit(){document.getElementById("itemEditModal").classList.remove("show");itemEditCtx=null;}
+function saveItemEdit(){
+  if(!itemEditCtx)return;
+  const t=document.getElementById("itemEditT").value.trim();
+  const m=document.getElementById("itemEditM").value.trim();
+  if(!t){closeItemEdit();return;}
+  const c=itemEditCtx;
+  if(c.type==="today"){ todayTasks[c.i].title=t; todayTasks[c.i].meta=m; saveToday(); buildToday(); }
+  else if(c.type==="weekly"){ weeklyData[c.which][c.i].t=t; weeklyData[c.which][c.i].m=m; saveWeekly(); buildWeekly(); }
+  closeItemEdit();
+}
+
+/* ============================================================
+   제품 정보 (마스터 파일 기준 · 전성분 팝업)
+============================================================ */
+function buildProductInfo(){
+  function certChips(p){
+    const chips=[];
+    chips.push(p.vegan?badge("done","비건"):badge("na","비건 X"));
+    chips.push(p.cpnp?badge("prog","CPNP"):badge("na","CPNP X"));
+    chips.push(p.mocra?badge("prog","MoCRA"):badge("na","MoCRA X"));
+    return chips.join(" ");
+  }
+  function hasIng(p){return p.kor||p.eng;}
+  function card(p,idx){
+    return `<div class="mcard ${p.line}">
+      <div class="hd"><div><div class="pn">${p.name}</div><div class="vol">${p.code} · ${p.vol} · ${p.cat}</div></div></div>
+      <div style="margin:6px 0 2px">${certChips(p)}</div>
+      <div class="mrow"><span class="k">랩넘버</span><span class="v">${p.lab}</span></div>
+      <div class="mrow"><span class="k">핵심 성분</span><span class="v" style="max-width:60%">${p.key||"—"}</span></div>
+      ${p.eff?`<div class="mrow"><span class="k">임상 효능</span><span class="v" style="max-width:62%;color:var(--ink-2);font-size:11.5px">${p.eff}</span></div>`:""}
+      <div class="mrow"><span class="k">전성분</span><span class="v">${hasIng(p)?`<span class="doclink" data-ing="${idx}">🧾 전성분 보기</span>`:'<span class="tmemo-inline dim">개발 중</span>'}</span></div>
+    </div>`;
+  }
+  const cardHTML=["ph","gb"].map(l=>`<div class="lgroup">${lineChip(l)}<div class="cards">${productInfo.map((p,i)=>({p,i})).filter(o=>o.p.line===l).map(o=>card(o.p,o.i)).join("")}</div></div>`).join("");
+
+  const head=`<thead><tr><th class="stickyc">제품명</th><th class="vline">코드</th><th class="vline">용량</th><th class="vline">카테고리</th><th class="vline">랩넘버</th><th class="vline">핵심 성분</th><th class="vline">비건</th><th class="vline">CPNP</th><th class="vline">MoCRA</th><th class="vline">전성분</th><th class="vline"></th></tr></thead>`;
+  function yn(v){return v?'<span class="ing-y">O</span>':'<span class="ing-n">X</span>';}
+  const body=productInfo.map((p,i)=>`<tr class="${p.line}-row">
+    <td class="stickyc editable" data-piedit="${i}" data-pif="name" title="클릭해서 수정">${p.name}</td>
+    <td class="vline editable" data-piedit="${i}" data-pif="code" title="클릭해서 수정">${p.code}</td>
+    <td class="vline editable" data-piedit="${i}" data-pif="vol" title="클릭해서 수정">${p.vol}</td>
+    <td class="vline editable" data-piedit="${i}" data-pif="cat" title="클릭해서 수정">${p.cat}</td>
+    <td class="vline num editable" data-piedit="${i}" data-pif="lab" title="클릭해서 수정">${p.lab}</td>
+    <td class="vline editable" data-piedit="${i}" data-pif="key" style="white-space:normal;min-width:150px" title="클릭해서 수정">${p.key||"—"}</td>
+    <td class="vline pi-toggle" data-pitoggle="${i}" data-pic="vegan" title="클릭해서 전환">${yn(p.vegan)}</td>
+    <td class="vline pi-toggle" data-pitoggle="${i}" data-pic="cpnp" title="클릭해서 전환">${yn(p.cpnp)}</td>
+    <td class="vline pi-toggle" data-pitoggle="${i}" data-pic="mocra" title="클릭해서 전환">${yn(p.mocra)}</td>
+    <td class="vline">${(p.kor||p.eng)?`<span class="doclink" data-ing="${i}">🧾 보기</span>`:'<span class="tmemo-inline dim">개발 중</span>'}</td>
+    <td class="vline"><button class="tdel" data-pidel="${i}" aria-label="삭제">✕</button></td></tr>`).join("");
+  const tableHTML=`<div class="tablecard"><div class="scrollx"><table class="vtable">${head}<tbody>${body}</tbody></table></div></div>`;
+
+  const addForm=`<div class="block">
+    <div class="block-h"><div class="bt">➕ 제품 추가</div></div>
+    <div class="card" style="padding:13px"><div class="addrow" style="flex-wrap:wrap">
+      <select id="piAddLine" class="tinput" style="max-width:150px"><option value="ph">Pure Hydra</option><option value="gb">Glow & Barrier</option></select>
+      <input id="piAddName" class="tinput" placeholder="제품명" style="flex:1;min-width:130px">
+      <input id="piAddCode" class="tinput" placeholder="코드(F-)" style="max-width:90px">
+      <input id="piAddVol" class="tinput" placeholder="용량" style="max-width:90px">
+      <input id="piAddCat" class="tinput" placeholder="카테고리" style="max-width:110px">
+      <button class="addbtn" id="piAdd">추가</button>
+    </div></div></div>`;
+
+  document.getElementById("productinfo").innerHTML=shell("productinfo","제품 정보","제품별 성분·효능·인증 · 전성분(국문/영문)",cardHTML,tableHTML,
+    `<div class="banner">👉 표에서 각 칸을 눌러 <b>직접 수정</b>하고(인증은 O/X 전환), 제품을 추가·삭제할 수 있습니다. 🧾 전성분 보기는 팝업으로 열립니다.</div>`+addForm);
+}
+
+/* 전성분 팝업 */
+function openIngredients(idx){
+  const p=productInfo[idx];
+  document.getElementById("ingTitle").textContent=`${p.name} · 전성분`;
+  document.getElementById("ingSub").textContent=`${p.code} · ${p.vol} · ${p.cat}`;
+  document.getElementById("ingKor").textContent=p.kor||"(국문 전성분 미등록)";
+  document.getElementById("ingEng").textContent=p.eng||"(영문 전성분 미등록)";
+  document.getElementById("ingModal").classList.add("show");
+}
+function closeIngredients(){document.getElementById("ingModal").classList.remove("show");}
+const ingredientDefault=[
+  {name:"PDRN (연어 DNA)",eng:"Polydeoxyribonucleotide",func:"피부 재생·장벽 강화",vegan:false,cpnp:true,mocra:true,halal:true,note:"동물유래(연어) · 비건 불가"},
+  {name:"판테놀",eng:"Panthenol",func:"진정·보습",vegan:true,cpnp:true,mocra:true,halal:true,note:"전 인증 가능"},
+  {name:"마데카소사이드",eng:"Madecassoside",func:"진정·장벽",vegan:true,cpnp:true,mocra:true,halal:true,note:"병풀 유래 · 전 인증 가능"},
+  {name:"나이아신아마이드",eng:"Niacinamide",func:"미백·결 개선",vegan:true,cpnp:true,mocra:true,halal:true,note:"전 인증 가능"},
+  {name:"히알루론산(식물성)",eng:"Sodium Hyaluronate",func:"보습",vegan:true,cpnp:true,mocra:true,halal:true,note:"발효 유래 · 비건"},
+  {name:"베타글루칸",eng:"Beta-Glucan",func:"진정·보습",vegan:true,cpnp:true,mocra:true,halal:true,note:"귀리·효모 유래"},
+  {name:"세라마이드 NP",eng:"Ceramide NP",func:"장벽 강화",vegan:true,cpnp:true,mocra:true,halal:true,note:"식물성/합성 선택 시 비건"},
+  {name:"엑소좀(식물)",eng:"Plant Exosome",func:"재생·부스팅",vegan:true,cpnp:true,mocra:true,halal:true,note:"식물 유래만 · 동물성 주의"},
+];
+function ingKey(){return "fiorese_ingredient";}
+function loadIng(){ try{const s=localStorage.getItem(ingKey());if(s)return JSON.parse(s);}catch(e){} return JSON.parse(JSON.stringify(ingredientDefault)); }
+function saveIng(){ try{localStorage.setItem(ingKey(),JSON.stringify(ingredientData));}catch(e){} saveToSheet(); }
+let ingredientData=loadIng();
+function buildIngredient(){
+  function yn(v){return v?'<span class="ing-y">가능</span>':'<span class="ing-n">불가</span>';}
+  function card(g,i){
+    return `<div class="mcard" style="position:relative">
+      <button class="tdel" data-ingdel="${i}" aria-label="삭제" style="position:absolute;top:10px;right:10px">✕</button>
+      <div class="hd"><div><div class="pn">${g.name}</div><div class="vol">${g.eng} · ${g.func}</div></div></div>
+      <div class="mgrid" style="grid-template-columns:1fr 1fr 1fr 1fr">
+        <div class="cell"><div class="ck">비건</div><div class="cv">${yn(g.vegan)}</div></div>
+        <div class="cell"><div class="ck">CPNP</div><div class="cv">${yn(g.cpnp)}</div></div>
+        <div class="cell"><div class="ck">MoCRA</div><div class="cv">${yn(g.mocra)}</div></div>
+        <div class="cell"><div class="ck">할랄</div><div class="cv">${yn(g.halal)}</div></div>
+      </div>
+      <div class="mrow"><span class="k">비고</span><span class="v" style="color:var(--ink-2)">${g.note}</span></div>
+    </div>`;
+  }
+  const cardHTML=`<div class="cards">${ingredientData.map((g,i)=>card(g,i)).join("")}</div>`;
+  const head=`<thead><tr><th class="stickyc">원료명</th><th class="vline">효능</th><th class="vline">비건</th><th class="vline">CPNP</th><th class="vline">MoCRA</th><th class="vline">할랄</th><th class="vline">비고</th><th class="vline"></th></tr></thead>`;
+  const body=ingredientData.map((g,i)=>`<tr><td class="stickyc">${g.name}<div style="font-size:10.5px;color:var(--ink-3);font-weight:500">${g.eng}</div></td>
+    <td class="vline">${g.func}</td><td class="vline">${yn(g.vegan)}</td><td class="vline">${yn(g.cpnp)}</td><td class="vline">${yn(g.mocra)}</td><td class="vline">${yn(g.halal)}</td>
+    <td class="vline" style="white-space:normal;min-width:150px;color:var(--ink-2)">${g.note}</td>
+    <td class="vline"><button class="tdel" data-ingdel="${i}" aria-label="삭제">✕</button></td></tr>`).join("");
+  const tableHTML=`<div class="tablecard"><div class="scrollx"><table class="vtable">${head}<tbody>${body}</tbody></table></div></div>`;
+  const addForm=`<div class="block">
+      <div class="block-h"><div class="bt">➕ 원료 추가</div></div>
+      <div class="card" style="padding:13px">
+        <div class="addrow" style="flex-wrap:wrap">
+          <input id="igName" class="tinput" placeholder="원료명(국문)" style="flex:1;min-width:120px">
+          <input id="igEng" class="tinput" placeholder="INCI(영문)" style="flex:1;min-width:120px">
+          <input id="igFunc" class="tinput" placeholder="효능" style="max-width:130px">
+          <label class="igchk"><input type="checkbox" id="igVegan" checked>비건</label>
+          <label class="igchk"><input type="checkbox" id="igCpnp" checked>CPNP</label>
+          <label class="igchk"><input type="checkbox" id="igMocra" checked>MoCRA</label>
+          <label class="igchk"><input type="checkbox" id="igHalal" checked>할랄</label>
+          <input id="igNote" class="tinput" placeholder="비고" style="flex:1;min-width:120px">
+          <button class="addbtn" id="igAdd">추가</button>
+        </div>
+      </div>
+    </div>`;
+  document.getElementById("ingredient").innerHTML=shell("ingredient","원료 서치","비건·CPNP·MoCRA·할랄 가능 원료 (직접 추가 가능)",cardHTML,tableHTML,
+    `<div class="banner info">👉 <b>비건·CPNP·MoCRA·할랄</b> 인증 가능 원료를 직접 추가·삭제할 수 있습니다.</div>`+addForm);
+}
+
+/* ============================================================
+   빌드 + 네비게이션
+============================================================ */
+function renderNav(){
+  document.getElementById("sbNav").innerHTML=NAV.map(g=>`
+    <div class="sb-group">${g.group}</div>
+    ${g.items.map(it=>`<button class="sb-item ${it.id==='dash'?'active':''}" data-goto="${it.id}">
+      <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor">${it.icon}</svg>
+      <span>${it.label}</span>${it.cnt?`<span class="cnt">${it.cnt}</span>`:''}
+    </button>`).join("")}
+  `).join("");
+  // 모바일 하단 탭바 (주요 5개)
+  const bar=[["dash","대시보드"],["today","금일"],["order","발주"],["tm","상표"],["files","파일"]];
+  document.getElementById("tabbar").innerHTML=bar.map(([id,lbl])=>{
+    const it=NAV.flatMap(g=>g.items).find(x=>x.id===id);
+    return `<button class="${id==='dash'?'active':''}" data-goto="${id}">
+      <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor">${it.icon}</svg>${lbl}</button>`;
+  }).join("");
+}
+
+function renderAll(){
+  buildDash();buildRail();buildToday();buildWeekly();buildProductInfo();buildProgress();buildClinical();buildCert();buildCost();buildOrder();buildTM();buildTrend();buildIngredient();buildFiles();
+  renderNav();
+  renderNotifDot();
+}
+// 먼저 시트에서 불러온 뒤 화면 그리기 (인터넷 안 되면 기기 저장분으로 그림)
+(async function initApp(){
+  showSyncBadge("saving");
+  await loadFromSheet();
+  // 시트에서 불러온 최신 데이터로 변수들 다시 채우기
+  productInfo = loadPi();
+  clinicalStudies = loadClin();
+  products = loadProd();
+  certData = loadCert();
+  costData = loadCost();
+  orderData = loadOrder();
+  tmData = loadTm();
+  checks = loadChecks();
+  notifs = loadNotifs();
+  weeklyData = loadWeekly();
+  trendData = loadTrend();
+  ingredientData = loadIng();
+  todayTasks = loadToday();
+  renderAll();
+  showSyncBadge("saved");
+})();
+
+document.getElementById("notifBtn").addEventListener("click",e=>{e.stopPropagation();toggleNotifPanel();});
+// 패널 밖 클릭 시 닫기
+document.addEventListener("click",e=>{
+  const panel=document.getElementById("notifPanel");
+  if(panel&&panel.classList.contains("show")&&!panel.contains(e.target)&&!e.target.closest("#notifBtn")){
+    panel.classList.remove("show");
+  }
+});
+
+function switchTab(id){
+  document.querySelectorAll("section").forEach(s=>s.classList.toggle("active",s.id===id));
+  document.querySelectorAll(".sb-item").forEach(b=>b.classList.toggle("active",b.dataset.goto===id));
+  document.querySelectorAll("#tabbar button").forEach(b=>b.classList.toggle("active",b.dataset.goto===id));
+  document.getElementById("hTitle").textContent=TAB_TITLE[id]||"";
+  // 우측 레일 노출 여부
+  document.getElementById("content").classList.toggle("no-rail",!RAIL_TABS.has(id));
+  document.getElementById("rail").style.display=RAIL_TABS.has(id)?"":"none";
+  closeSidebar();
+  window.scrollTo({top:0,behavior:"smooth"});
+}
+// 초기: 대시보드는 레일 표시, 나머지 숨김 처리 위해
+document.getElementById("content").classList.toggle("no-rail",!RAIL_TABS.has("dash"));
+
+function openSidebar(){document.getElementById("sidebar").classList.add("open");document.getElementById("scrim").classList.add("show");}
+function closeSidebar(){document.getElementById("sidebar").classList.remove("open");document.getElementById("scrim").classList.remove("show");}
+document.getElementById("hamburger").addEventListener("click",openSidebar);
+document.getElementById("scrim").addEventListener("click",closeSidebar);
+
+/* 이벤트 위임 */
+document.body.addEventListener("click",e=>{
+  // 알림 항목 클릭 → 해당 탭으로 이동
+  const nitem=e.target.closest(".notif-item[data-notif]");
+  if(nitem){const i=+nitem.dataset.notif;const n=notifs[i];
+    document.getElementById("notifPanel").classList.remove("show");
+    if(n){switchTab(n.tab);}return;}
+  if(e.target.id==="notifClear"){notifs=[];saveNotifs();renderNotifPanel();renderNotifDot();return;}
+  // 트렌드 검색 클리어
+  if(e.target.id==="trSearchClear"){trendSearch="";buildTrend();return;}
+  // 트렌드 삭제
+  const trDel=e.target.closest("[data-trenddel]");
+  if(trDel){e.stopPropagation();trendData.splice(+trDel.dataset.trenddel,1);saveTrend();buildTrend();return;}
+  // 트렌드 추가
+  if(e.target.id==="trAdd"){
+    const cat=document.getElementById("trAddCat").value;
+    const title=(document.getElementById("trAddTitle").value||"").trim();
+    const src=(document.getElementById("trAddSrc").value||"").trim();
+    const url=(document.getElementById("trAddUrl").value||"").trim();
+    const sum=(document.getElementById("trAddSum").value||"").trim();
+    const body=(document.getElementById("trAddBody").value||"").trim();
+    if(title){
+      const tagMap={"규제":"t-rose","인증":"t-blue","신제품":"t-violet","트렌드":"t-amber"};
+      const d=new Date();const date=`${d.getFullYear()}.${String(d.getMonth()+1).padStart(2,"0")}.${String(d.getDate()).padStart(2,"0")}`;
+      trendData.unshift({cat,tag:tagMap[cat]||"t-blue",title,src:src||"직접 등록",date,sum:sum||"",body:body||sum||"",url});
+      saveTrend();buildTrend();
+    }
+    return;
+  }
+  // 트렌드 카드 클릭 → 상세 팝업
+  const tcard=e.target.closest(".news-card[data-trend]");
+  if(tcard){openTrend(+tcard.dataset.trend);return;}
+  if(e.target.closest("#trendClose")||e.target.id==="trendModal"){closeTrend();return;}
+  // 진행현황: 제품명/용량 편집
+  const pgname=e.target.closest(".editable[data-progname]");
+  if(pgname&&!pgname.querySelector("input")){
+    const i=+pgname.dataset.progname;const cur=products[i].name;
+    pgname.innerHTML=`<input class="celledit" style="width:100%" value="${cur.replace(/"/g,'&quot;')}">`;
+    const inp=pgname.querySelector("input");inp.focus();inp.select();
+    const c=()=>{products[i].name=inp.value.trim();saveProd();buildProgress();};
+    inp.onkeydown=ev=>{if(ev.key==="Enter")c();if(ev.key==="Escape")buildProgress();};inp.onblur=c;return;
+  }
+  const pgvol=e.target.closest(".editable[data-progvol]");
+  if(pgvol&&!pgvol.querySelector("input")){
+    const i=+pgvol.dataset.progvol;const cur=products[i].vol;
+    pgvol.innerHTML=`<input class="celledit" value="${cur.replace(/"/g,'&quot;')}">`;
+    const inp=pgvol.querySelector("input");inp.focus();inp.select();
+    const c=()=>{products[i].vol=inp.value.trim();saveProd();buildProgress();};
+    inp.onkeydown=ev=>{if(ev.key==="Enter")c();if(ev.key==="Escape")buildProgress();};inp.onblur=c;return;
+  }
+  // 진행현황: 트랙 셀 편집 (상태 + 메모)
+  const pgcell=e.target.closest(".prog-cell[data-progedit]");
+  if(pgcell&&!pgcell.querySelector("select")){
+    const i=+pgcell.dataset.progedit, k=pgcell.dataset.progk;
+    const has=!!products[i].tracks[k];
+    const curSt=has?products[i].tracks[k][0]:"na";
+    const curMemo=has?products[i].tracks[k][1]:"";
+    pgcell.innerHTML=`<select class="celledit" style="width:88px;margin-bottom:4px">${PROG_STATUS.map(([v,l])=>`<option value="${v}" ${v===curSt?'selected':''}>${l}</option>`).join("")}</select><input class="celledit prog-memo" style="width:100%" value="${(curMemo||'').replace(/"/g,'&quot;')}" placeholder="확인 내용(선택)">`;
+    const sel=pgcell.querySelector("select");const inp=pgcell.querySelector("input");sel.focus();
+    const c=()=>{const st=sel.value;if(st==="na"){delete products[i].tracks[k];}else{products[i].tracks[k]=[st,inp.value.trim()];}saveProd();buildProgress();};
+    sel.onchange=()=>{if(sel.value==="na"){c();}};
+    inp.onkeydown=ev=>{if(ev.key==="Enter")c();if(ev.key==="Escape")buildProgress();};
+    inp.onblur=c;
+    return;
+  }
+  // 진행현황: 제품 삭제
+  const pgdel=e.target.closest("[data-progdel]");
+  if(pgdel){const i=+pgdel.dataset.progdel;if(confirm(`"${products[i].name}"을(를) 삭제할까요?`)){products.splice(i,1);saveProd();buildProgress();}return;}
+  // 진행현황: 제품 추가
+  if(e.target.id==="prAdd"){
+    const name=(document.getElementById("prAddName").value||"").trim();
+    const line=document.getElementById("prAddLine").value;
+    const vol=(document.getElementById("prAddVol").value||"").trim();
+    if(name){products.push({line,name,vol:vol||"-",tracks:{},mun:{}});saveProd();buildProgress();}
+    return;
+  }
+  // 제품정보 인증 O/X 토글
+  const pitoggle=e.target.closest(".pi-toggle[data-pitoggle]");
+  if(pitoggle){const i=+pitoggle.dataset.pitoggle, c=pitoggle.dataset.pic;productInfo[i][c]=!productInfo[i][c];savePi();buildProductInfo();return;}
+  // 제품정보 삭제
+  const pidel=e.target.closest("[data-pidel]");
+  if(pidel){const i=+pidel.dataset.pidel;if(confirm(`"${productInfo[i].name}"을(를) 삭제할까요?`)){productInfo.splice(i,1);savePi();buildProductInfo();}return;}
+  // 제품정보 추가
+  if(e.target.id==="piAdd"){
+    const name=(document.getElementById("piAddName").value||"").trim();
+    if(name){productInfo.push({line:document.getElementById("piAddLine").value,code:(document.getElementById("piAddCode").value||"").trim()||"-",name,vol:(document.getElementById("piAddVol").value||"").trim()||"-",cat:(document.getElementById("piAddCat").value||"").trim(),lab:"-",key:"",eff:"",vegan:false,cpnp:false,mocra:false,kor:"",eng:""});savePi();buildProductInfo();}
+    return;
+  }
+  // 제품정보 값 편집 (랩넘버/핵심성분)
+  const piedit=e.target.closest(".editable[data-piedit]");
+  if(piedit&&!piedit.querySelector("input")){
+    const i=+piedit.dataset.piedit, f=piedit.dataset.pif;
+    const cur=productInfo[i][f]||"";
+    piedit.innerHTML=`<input class="celledit" style="width:100%" value="${cur.replace(/"/g,'&quot;')}" placeholder="입력">`;
+    const inp=piedit.querySelector("input");inp.focus();inp.select();
+    const commit=()=>{productInfo[i][f]=inp.value.trim();savePi();buildProductInfo();};
+    inp.onkeydown=ev=>{if(ev.key==="Enter")commit();if(ev.key==="Escape")buildProductInfo();};
+    inp.onblur=commit;
+    return;
+  }
+  // 원료 삭제
+  const igDel=e.target.closest("[data-ingdel]");
+  if(igDel){ingredientData.splice(+igDel.dataset.ingdel,1);saveIng();buildIngredient();return;}
+  // 원료 추가
+  if(e.target.id==="igAdd"){
+    const name=(document.getElementById("igName").value||"").trim();
+    if(name){
+      ingredientData.push({
+        name, eng:(document.getElementById("igEng").value||"").trim(), func:(document.getElementById("igFunc").value||"").trim(),
+        vegan:document.getElementById("igVegan").checked, cpnp:document.getElementById("igCpnp").checked,
+        mocra:document.getElementById("igMocra").checked, halal:document.getElementById("igHalal").checked,
+        note:(document.getElementById("igNote").value||"").trim()||"직접 추가"
+      });
+      saveIng();buildIngredient();
+    }
+    return;
+  }
+  // 주간 업무보고 삭제
+  const wkDel=e.target.closest("[data-wkdel]");
+  if(wkDel){const [which,i]=wkDel.dataset.wkdel.split(":");weeklyData[which].splice(+i,1);saveWeekly();buildWeekly();return;}
+  // 주간 업무보고 편집
+  const wkEd=e.target.closest("[data-wkedit]");
+  if(wkEd){const [which,i]=wkEd.dataset.wkedit.split(":");const it=weeklyData[which][+i];openItemEdit({type:"weekly",which,i:+i},it.t,it.m,"주간 업무 수정");return;}
+  // 항목 편집 모달 저장/닫기
+  if(e.target.id==="itemEditSave"){saveItemEdit();return;}
+  if(e.target.closest("#itemEditClose")||e.target.id==="itemEditModal"){closeItemEdit();return;}
+  // 주간 업무보고 추가
+  const wkAdd=e.target.closest("[data-wkadd]");
+  if(wkAdd){const which=wkAdd.dataset.wkadd;
+    const tI=document.querySelector(`[data-wkadd-t="${which}"]`), mI=document.querySelector(`[data-wkadd-m="${which}"]`);
+    const t=(tI.value||"").trim(), m=(mI.value||"").trim();
+    if(t){const item={t,m:m||"직접 추가"};if(which==="nextWeek")item.flag="예정";weeklyData[which].push(item);saveWeekly();buildWeekly();}
+    return;
+  }
+  // 원가 값 편집
+  const costcell=e.target.closest(".editable[data-costedit]");
+  if(costcell&&!costcell.querySelector("input")){
+    const i=+costcell.dataset.costedit, f=costcell.dataset.costf;
+    const cur=costData[i][f]||"";
+    costcell.innerHTML=`<input class="celledit" value="${cur}" placeholder="값">`;
+    const inp=costcell.querySelector("input");inp.focus();inp.select();
+    const commit=()=>{costData[i][f]=inp.value.trim();saveCost();buildCost();};
+    inp.onkeydown=ev=>{if(ev.key==="Enter")commit();if(ev.key==="Escape")buildCost();};
+    inp.onblur=commit;
+    return;
+  }
+  // 임상 삭제
+  const clinDel=e.target.closest("[data-clindel]");
+  if(clinDel){const i=+clinDel.dataset.clindel;if(confirm(`"${clinicalStudies[i].title}" 임상을 삭제할까요?`)){clinicalStudies.splice(i,1);saveClin();buildClinical();}return;}
+  // 임상 추가
+  if(e.target.id==="clAdd"){
+    const prods=(document.getElementById("clAddProd").value||"").split(",").map(s=>s.trim()).filter(Boolean);
+    const item=(document.getElementById("clAddItem").value||"").trim();
+    const lab=(document.getElementById("clAddLab").value||"").trim();
+    const start=(document.getElementById("clAddStart").value||"").trim();
+    if(prods.length&&item){
+      const n=clinicalStudies.length+1;
+      clinicalStudies.push({id:"CL-"+String(n).padStart(2,"0"),title:item+(prods.length>1?` (${prods.length}종 공동)`:""),item,lab:lab||"-",status:["wait","대기"],start:start||"-",kor:"-",eng:"-",doc:item+" 임상계획서.docx",products:prods,result:""});
+      saveClin();buildClinical();
+    }
+    return;
+  }
+  // 임상 상태 편집
+  const clinst=e.target.closest(".stedit[data-clinedit]");
+  if(clinst&&!clinst.querySelector("select")){
+    const i=+clinst.dataset.clinedit;const cur=clinicalStudies[i].status[0];
+    clinst.innerHTML=`<select class="celledit" style="width:96px">${CLIN_STATUS.map(([v,l])=>`<option value="${v}" ${v===cur?'selected':''}>${l}</option>`).join("")}</select>`;
+    const sel=clinst.querySelector("select");sel.focus();
+    const commit=()=>{const v=sel.value;const label=(CLIN_STATUS.find(s=>s[0]===v)||[v,v])[1];clinicalStudies[i].status=[v,label];saveClin();buildClinical();};
+    sel.onchange=commit;sel.onblur=commit;
+    return;
+  }
+  // 임상 발행일 편집
+  const clinfld=e.target.closest(".editable[data-clinfld]");
+  if(clinfld&&!clinfld.querySelector("input")){
+    const i=+clinfld.dataset.clinfld, f=clinfld.dataset.cf;
+    const cur=clinicalStudies[i][f]||"";
+    clinfld.innerHTML=`<input class="celledit" value="${cur}" placeholder="예: 2026.04.14">`;
+    const inp=clinfld.querySelector("input");inp.focus();inp.select();
+    const commit=()=>{clinicalStudies[i][f]=inp.value.trim();saveClin();buildClinical();};
+    inp.onkeydown=ev=>{if(ev.key==="Enter")commit();if(ev.key==="Escape")buildClinical();};
+    inp.onblur=commit;
+    return;
+  }
+  // 인증 값 편집 (인증번호/등록일/만료일)
+  const cedit=e.target.closest(".editable[data-cedit]");
+  if(cedit&&!cedit.querySelector("input")){
+    const ci=+cedit.dataset.cedit, grp=cedit.dataset.cgrp, fld=cedit.dataset.cfld;
+    const cur=(certData[ci][grp]&&certData[ci][grp][fld])||"";
+    cedit.innerHTML=`<input class="celledit" value="${cur}" placeholder="입력">`;
+    const inp=cedit.querySelector("input");inp.focus();inp.select();
+    const commit=()=>{ if(!certData[ci][grp])certData[ci][grp]={}; certData[ci][grp][fld]=inp.value.trim(); saveCert(); buildCert(); };
+    inp.onkeydown=ev=>{ if(ev.key==="Enter")commit(); if(ev.key==="Escape")buildCert(); };
+    inp.onblur=commit;
+    return;
+  }
+  // 상표 일반 칸 편집
+  const tmfield=e.target.closest(".editable[data-tmfield]");
+  if(tmfield&&!tmfield.querySelector("input")){
+    const i=+tmfield.dataset.tmfield, f=tmfield.dataset.tmf;
+    const cur=tmData[i][f]||"";
+    tmfield.innerHTML=`<input class="celledit" style="width:100%" value="${(cur+'').replace(/"/g,'&quot;')}" placeholder="입력">`;
+    const inp=tmfield.querySelector("input");inp.focus();inp.select();
+    const c=()=>{tmData[i][f]=inp.value.trim();saveTm();buildTM();};
+    inp.onkeydown=ev=>{if(ev.key==="Enter")c();if(ev.key==="Escape")buildTM();};inp.onblur=c;return;
+  }
+  // 상표 상태 편집
+  const tmcell=e.target.closest(".stedit[data-tmedit]");
+  if(tmcell&&!tmcell.querySelector("select")){
+    const i=+tmcell.dataset.tmedit;const cur=tmData[i].status[0];
+    tmcell.innerHTML=`<select class="celledit" style="width:110px">${TM_STATUS.map(([v,l])=>`<option value="${v}" ${v===cur?'selected':''}>${l}</option>`).join("")}</select>`;
+    const sel=tmcell.querySelector("select");sel.focus();
+    const commit=()=>{const v=sel.value;const label=(TM_STATUS.find(s=>s[0]===v)||[v,v])[1];tmData[i].status=[v,label];saveTm();buildTM();};
+    sel.onchange=commit;sel.onblur=commit;
+    return;
+  }
+  // 발주 부자재 편집 (CT / 발주일 / 입고일)
+  const matcell=e.target.closest("[data-matedit]");
+  if(matcell&&!matcell.querySelector("input")&&!matcell.querySelector("select")){
+    const oi=+matcell.dataset.matedit, k=matcell.dataset.matk, f=matcell.dataset.matf;
+    if(!orderData[oi][k]||orderData[oi][k].na)return;
+    if(f==="ct"){
+      const cur=orderData[oi][k].ct||"";
+      matcell.innerHTML=`<select class="celledit" style="width:96px"><option value="">—</option><option ${cur==="샘플요청"?"selected":""}>샘플요청</option><option ${cur==="진행중"?"selected":""}>진행중</option><option ${cur==="완료"?"selected":""}>완료</option></select>`;
+      const sel=matcell.querySelector("select");sel.focus();
+      const c=()=>{orderData[oi][k].ct=sel.value;saveOrder();buildOrder();};
+      sel.onchange=c;sel.onblur=c;return;
+    }else{
+      const cur=orderData[oi][k][f]||"";
+      matcell.innerHTML=`<input class="celledit" value="${(cur+'').replace(/"/g,'&quot;')}" placeholder="예: 3/16">`;
+      const inp=matcell.querySelector("input");inp.focus();inp.select();
+      const c=()=>{orderData[oi][k][f]=inp.value.trim();saveOrder();buildOrder();};
+      inp.onkeydown=ev=>{if(ev.key==="Enter")c();if(ev.key==="Escape")buildOrder();};inp.onblur=c;return;
+    }
+  }
+  // 발주 완제품/기타 칸 편집
+  const edcell=e.target.closest(".editable[data-oedit]");
+  if(edcell&&!edcell.querySelector("input")){
+    const oi=+edcell.dataset.oedit, field=edcell.dataset.ofield;
+    const cur=orderData[oi][field]||"";
+    edcell.innerHTML=`<input class="celledit" value="${(cur+'').replace(/"/g,'&quot;')}" placeholder="입력">`;
+    const inp=edcell.querySelector("input"); inp.focus(); inp.select();
+    const commit=()=>{
+      orderData[oi][field]=inp.value.trim();
+      saveOrder(); buildOrder();
+    };
+    inp.onkeydown=ev=>{ if(ev.key==="Enter")commit(); if(ev.key==="Escape")buildOrder(); };
+    inp.onblur=commit;
+    return;
+  }
+  // 확인사항 삭제
+  const ckDel=e.target.closest("[data-check-del]");
+  if(ckDel){const i=+ckDel.dataset.checkDel;checks.splice(i,1);saveChecks();buildDash();return;}
+  // 확인사항 추가
+  if(e.target.id==="ckAdd"){
+    const title=(document.getElementById("ckTitle").value||"").trim();
+    const tab=document.getElementById("ckTab").value;
+    const meta=(document.getElementById("ckMeta").value||"").trim()||"직접 추가";
+    if(title){const m=TAB_META[tab]||TAB_META.none;
+      checks.push({p:m.p,title,meta,tag:m.tag,tc:m.tc,goto:tab==="none"?"dash":tab});
+      saveChecks();buildDash();
+      const h=document.getElementById("ckHint");if(h){h.textContent="✓ 저장되었습니다.";h.classList.add("ok");}
+    }
+    return;
+  }
+  const nav=e.target.closest("[data-goto]");
+  if(nav){switchTab(nav.dataset.goto);return;}
+  const view=e.target.closest("[data-view]");
+  if(view){const wrap=view.closest("[data-toggle]");const id=wrap.dataset.toggle;
+    wrap.querySelectorAll("button").forEach(x=>x.classList.remove("on"));view.classList.add("on");
+    document.getElementById(id+"-card").classList.toggle("hide",view.dataset.view!=="card");
+    document.getElementById(id+"-table").classList.toggle("hide",view.dataset.view!=="table");return;}
+  const tr=e.target.closest(".track.expandable");
+  if(tr){tr.classList.toggle("open");return;}
+  const day=e.target.closest(".cal-cell[data-day]");
+  if(day){selectedDate=parseInt(day.dataset.day);renderCalendar();renderSchedule();return;}
+  const folder=e.target.closest(".folder[data-folder]");
+  if(folder){selectedFolder=folder.dataset.folder;renderFolderGrid();renderFileList();return;}
+  const prev=e.target.closest(".fpreview[data-file]");
+  if(prev){openPreview(prev.dataset.file);return;}
+  const doc=e.target.closest(".doclink[data-file]");
+  if(doc){openPreview(doc.dataset.file);return;}
+  const ing=e.target.closest(".doclink[data-ing]");
+  if(ing){openIngredients(+ing.dataset.ing);return;}
+  if(e.target.closest("#ingClose")||e.target.id==="ingModal"){closeIngredients();return;}
+  if(e.target.closest("#previewClose")||e.target.id==="previewModal"){closePreview();return;}
+});
+</script>
+</body>
+</html>
