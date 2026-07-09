@@ -1236,11 +1236,8 @@ const NAV=[
     {id:"trend",label:"화장품 트렌드",icon:'<path d="M23 6l-9.5 9.5-5-5L1 18"/><path d="M17 6h6v6"/>'},
     {id:"ingredient",label:"원료 서치",icon:'<path d="M10 2v7.5L4.5 19a2 2 0 0 0 1.7 3h11.6a2 2 0 0 0 1.7-3L14 9.5V2"/><path d="M8.5 2h7"/>'},
   ]},
-  {group:"자료",items:[
-    {id:"files",label:"파일 관리",icon:'<path d="M4 4h5l2 2h9a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z"/>'},
-  ]},
 ];
-const TAB_TITLE={today:"금일 업무",weekly:"주간 업무보고",dash:"대시보드",productinfo:"제품 정보",progress:"제품 진행 현황",clinical:"임상",cert:"인증 현황",cost:"원가 · 마진",order:"발주·입고",tm:"상표 현황",trend:"화장품 트렌드",ingredient:"원료 서치",files:"파일 관리"};
+const TAB_TITLE={today:"금일 업무",weekly:"주간 업무보고",dash:"대시보드",productinfo:"제품 정보",progress:"제품 진행 현황",clinical:"임상",cert:"인증 현황",cost:"원가 · 마진",order:"발주·입고",tm:"상표 현황",trend:"화장품 트렌드",ingredient:"원료 서치"};
 const RAIL_TABS=new Set(["dash"]); // 우측 레일 노출 탭
 
 /* ============================================================
@@ -1308,9 +1305,15 @@ function wmoDesc(code){
   return "구름많음";
 }
 // 수원 좌표로 이번 주 날씨 가져오기 (무료 Open-Meteo · 가입 불필요)
+let weatherTodayDow=new Date().getDay(); // 오늘 요일 (0=일 ~ 6=토)
 async function loadWeather(){
   try{
-    const url="https://api.open-meteo.com/v1/forecast?latitude=37.2636&longitude=127.0286&daily=weathercode,temperature_2m_max,temperature_2m_min&timezone=Asia%2FSeoul&forecast_days=7";
+    // 이번 주 일요일 ~ 토요일 날짜 계산
+    const now=new Date();
+    const sun=new Date(now); sun.setDate(now.getDate()-now.getDay()); // 이번 주 일요일
+    const sat=new Date(sun); sat.setDate(sun.getDate()+6);           // 이번 주 토요일
+    const fmt=d=>d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");
+    const url="https://api.open-meteo.com/v1/forecast?latitude=37.2636&longitude=127.0286&daily=weathercode,temperature_2m_max,temperature_2m_min&timezone=Asia%2FSeoul&start_date="+fmt(sun)+"&end_date="+fmt(sat);
     const res=await fetch(url);
     const j=await res.json();
     if(j&&j.daily&&j.daily.time){
@@ -1368,7 +1371,7 @@ function buildDash(){
   const veganExp=certData.filter(c=>c.status[0]==="risk").length;
 
   // 주간 날씨 위젯 (오늘 = weekWeather 첫 항목, 실시간이면 오늘부터 시작)
-  const weatherHTML=weekWeather.map((w,i)=>`<div class="wday ${i===0?'today':''}">
+  const weatherHTML=weekWeather.map((w,i)=>`<div class="wday ${i===weatherTodayDow?'today':''}">
     <div class="wd">${w.d}</div><div class="wic">${w.ic}</div>
     <div class="wt"><span class="whi">${w.hi}°</span><span class="wlo">${w.lo}°</span></div></div>`).join("");
 
@@ -2057,7 +2060,7 @@ function renderNav(){
 }
 
 function renderAll(){
-  buildDash();buildRail();buildToday();buildWeekly();buildProductInfo();buildProgress();buildClinical();buildCert();buildCost();buildOrder();buildTM();buildTrend();buildIngredient();buildFiles();
+  buildDash();buildRail();buildToday();buildWeekly();buildProductInfo();buildProgress();buildClinical();buildCert();buildCost();buildOrder();buildTM();buildTrend();buildIngredient();
   renderNav();
   renderNotifDot();
 }
