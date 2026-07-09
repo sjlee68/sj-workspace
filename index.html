@@ -444,23 +444,33 @@
 </div>
 <script>
 (function(){
-  // ===== 암호 설정 (여기 글자만 바꾸면 암호가 바뀝니다) =====
-  var PASSWORD = "24686812^";
-  // =====================================================
-  var KEY = "fiorese_unlocked";
+  // 비밀번호는 이 파일에 없습니다. 앱스 스크립트(구글 시트)가 검사합니다.
+  var LOGIN_URL = "https://script.google.com/macros/s/AKfycbxP1vIctSdvbRqorq8ie3Dg50mcNhy9hnHn1b0hBoxHhMpfEMhvg3btYi3VAz2MXRjm/exec";
+  var SKEY = "fiorese_unlocked";
   function unlock(){
     document.getElementById("lockScreen").style.display="none";
-    try{ sessionStorage.setItem(KEY,"1"); }catch(e){}
+    try{ sessionStorage.setItem(SKEY,"1"); }catch(e){}
   }
-  // 이미 이번 세션에 풀었으면 통과
-  try{ if(sessionStorage.getItem(KEY)==="1"){ unlock(); } }catch(e){}
+  try{ if(sessionStorage.getItem(SKEY)==="1"){ unlock(); } }catch(e){}
+  var checking=false;
   function tryUnlock(){
+    if(checking) return;
     var v=document.getElementById("lockInput").value;
-    if(v===PASSWORD){ unlock(); }
-    else{
-      document.getElementById("lockError").textContent="암호가 맞지 않습니다";
-      document.getElementById("lockInput").value="";
-    }
+    var errEl=document.getElementById("lockError");
+    var btn=document.getElementById("lockBtn");
+    if(!v){ errEl.textContent="암호를 입력하세요"; return; }
+    checking=true; errEl.textContent="확인 중..."; if(btn) btn.textContent="확인 중...";
+    fetch(LOGIN_URL + "?action=login&pw=" + encodeURIComponent(v))
+      .then(function(r){ return r.json(); })
+      .then(function(j){
+        checking=false; if(btn) btn.textContent="열기";
+        if(j && j.ok){ unlock(); }
+        else{ errEl.textContent="암호가 맞지 않습니다"; document.getElementById("lockInput").value=""; }
+      })
+      .catch(function(e){
+        checking=false; if(btn) btn.textContent="열기";
+        errEl.textContent="연결 오류 · 인터넷 확인";
+      });
   }
   document.addEventListener("DOMContentLoaded",function(){
     var btn=document.getElementById("lockBtn");
