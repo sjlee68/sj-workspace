@@ -212,7 +212,7 @@
   .savehint{font-size:11.5px;color:var(--ink-3);font-weight:600;margin-top:10px}
   .savehint.ok{color:var(--done);font-weight:700}
   /* 편집 가능 셀 */
-  .editable{cursor:pointer;border-bottom:1px dashed var(--blue)!important;position:relative}
+  .editable{cursor:pointer;border-bottom:1px solid var(--blue)!important;position:relative}
   .editable:hover{background:var(--blue-soft)}
   .celledit{width:80px;border:1px solid var(--blue);border-radius:6px;padding:4px 6px;font-size:12px;font-family:inherit;outline:none}
   .stedit{cursor:pointer}
@@ -298,7 +298,11 @@
   tbody tr:hover{background:#fafbfc}
   .stickyc{position:sticky;left:0;background:var(--card);z-index:2;font-weight:700;box-shadow:1px 0 0 var(--line)}
   thead .stickyc{background:#fafbfc;z-index:5}
-  tr.ph-row .stickyc{background:var(--blue-soft)} tr.gb-row .stickyc{background:var(--pink-soft)}
+  /* 라인업별 은은한 행 색 (제품명 열은 살짝 진하게 구분) */
+  tr.ph-row td{background:#f5f9ff} tr.ph-row .stickyc{background:#e8f1ff}
+  tr.gb-row td{background:#fdf6f9} tr.gb-row .stickyc{background:#fbe9f1}
+  tbody tr.ph-row:hover td{background:#eef5ff} tbody tr.ph-row:hover .stickyc{background:#dfeaff}
+  tbody tr.gb-row:hover td{background:#faeef4} tbody tr.gb-row:hover .stickyc{background:#f7e0ec}
   .right{text-align:right}
 
   /* ===== 카드형(모바일 등) ===== */
@@ -538,9 +542,13 @@
     <div class="modal-head"><div><div id="ingTitle" style="font-weight:800">전성분</div><div id="ingSub" style="font-size:11.5px;color:var(--ink-3);font-weight:600;margin-top:2px"></div></div><button class="modal-x" id="ingClose">✕</button></div>
     <div class="modal-body">
       <div class="ing-sec-h">국문 전성분</div>
-      <div class="ing-text" id="ingKor"></div>
+      <textarea id="ingKorEdit" class="ing-edit" placeholder="국문 전성분을 입력하세요" style="width:100%;box-sizing:border-box;min-height:110px;border:1px solid var(--line);border-radius:9px;padding:10px 12px;font-size:12.5px;line-height:1.7;resize:vertical;font-family:inherit"></textarea>
       <div class="ing-sec-h" style="margin-top:16px">영문 전성분 (INCI)</div>
-      <div class="ing-text" id="ingEng"></div>
+      <textarea id="ingEngEdit" class="ing-edit" placeholder="영문 전성분(INCI)을 입력하세요" style="width:100%;box-sizing:border-box;min-height:110px;border:1px solid var(--line);border-radius:9px;padding:10px 12px;font-size:12.5px;line-height:1.7;resize:vertical;font-family:inherit"></textarea>
+      <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:14px">
+        <button class="addbtn" id="ingSave">저장</button>
+      </div>
+      <div class="savehint" id="ingSaveHint" style="text-align:right;margin-top:6px">＋ 수정 후 저장하면 자동으로 반영됩니다.</div>
     </div>
   </div>
 </div>
@@ -590,11 +598,9 @@ const SHEET_KEY = "fio_San_z0hcIV-I9o7B5gu-qw";  // 시트 접근 열쇠 (앱스
 // 시트에 저장할 데이터 열쇠 목록 (localStorage 키와 동일)
 const SYNC_KEYS = [
   "fiorese_productinfo","fiorese_clinical","fiorese_products","fiorese_cert",
-  "fiorese_cost","fiorese_order","fiorese_tm","fiorese_checks","fiorese_notifs",
-  "fiorese_weekly","fiorese_trend","fiorese_ingredient","fiorese_schedule"
+  "fiorese_cost","fiorese_order","fiorese_tm","fiorese_notifs",
+  "fiorese_trend","fiorese_ingredient","fiorese_schedule","fiorese_worklog"
 ];
-// 금일 업무는 날짜별 키라 별도 처리 (오늘 것만)
-function todayKeyForSync(){const d=new Date();return "fiorese_today_"+d.getFullYear()+"-"+(d.getMonth()+1)+"-"+d.getDate();}
 
 let sheetSyncTimer = null;
 let sheetLoaded = false;
@@ -621,7 +627,7 @@ function saveToSheet(){
   if(sheetSyncTimer) clearTimeout(sheetSyncTimer);
   sheetSyncTimer = setTimeout(async ()=>{
     const all = {};
-    const keys = SYNC_KEYS.concat([todayKeyForSync()]);
+    const keys = SYNC_KEYS;
     keys.forEach(k=>{
       const v = localStorage.getItem(k);
       if(v !== null) all[k] = v;
@@ -1094,21 +1100,23 @@ const TM_STATUS=[["done","등록완료"],["prog","진행중"],["check","확인�
 const isMobile = window.matchMedia("(max-width:1080px)").matches;
 
 const NAV=[
+  {group:"",items:[
+    {id:"dash",label:"대시보드",icon:'<rect x="3" y="3" width="7" height="9" rx="1"/><rect x="14" y="3" width="7" height="5" rx="1"/><rect x="14" y="12" width="7" height="9" rx="1"/><rect x="3" y="16" width="7" height="5" rx="1"/>'},
+  ]},
   {group:"업무",items:[
     {id:"today",label:"금일 업무",icon:'<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>'},
     {id:"weekly",label:"주간 업무보고",icon:'<path d="M9 11H3v10h6zM21 3h-6v18h6zM15 8H9v13h6z"/>'},
   ]},
   {group:"현황",items:[
-    {id:"dash",label:"대시보드",icon:'<rect x="3" y="3" width="7" height="9" rx="1"/><rect x="14" y="3" width="7" height="5" rx="1"/><rect x="14" y="12" width="7" height="9" rx="1"/><rect x="3" y="16" width="7" height="5" rx="1"/>'},
-    {id:"productinfo",label:"제품 정보",icon:'<path d="M6 2h9l5 5v13a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V3a1 1 0 0 1 1-1z"/><path d="M14 2v6h6"/>',cnt:productInfo.length},
-    {id:"progress",label:"제품 진행 현황",icon:'<path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>',cnt:products.length},
-    {id:"clinical",label:"임상",icon:'<path d="M9 2v6l-4 8a2 2 0 0 0 2 3h10a2 2 0 0 0 2-3l-4-8V2"/><path d="M8 2h8"/>',cnt:clinicalStudies.length},
+    {id:"productinfo",label:"제품 정보",icon:'<path d="M6 2h9l5 5v13a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V3a1 1 0 0 1 1-1z"/><path d="M14 2v6h6"/>'},
+    {id:"progress",label:"제품 진행 현황",icon:'<path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>'},
+    {id:"clinical",label:"임상",icon:'<path d="M9 2v6l-4 8a2 2 0 0 0 2 3h10a2 2 0 0 0 2-3l-4-8V2"/><path d="M8 2h8"/>'},
     {id:"cert",label:"인증 현황",icon:'<path d="M12 15a4 4 0 1 0 0-8 4 4 0 0 0 0 8z"/><path d="M8.5 14l-1.5 7 5-3 5 3-1.5-7"/>'},
   ]},
   {group:"운영",items:[
     {id:"cost",label:"원가 · 마진",icon:'<line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>'},
     {id:"order",label:"발주·입고",icon:'<rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>'},
-    {id:"tm",label:"상표 현황",icon:'<path d="M20.6 3.4a2 2 0 0 0-2.8 0l-9.2 9.2a2 2 0 0 0-.5.9L7 18l4.5-1.1a2 2 0 0 0 .9-.5l9.2-9.2a2 2 0 0 0 0-2.8z"/>',cnt:tmData.length},
+    {id:"tm",label:"상표 현황",icon:'<path d="M20.6 3.4a2 2 0 0 0-2.8 0l-9.2 9.2a2 2 0 0 0-.5.9L7 18l4.5-1.1a2 2 0 0 0 .9-.5l9.2-9.2a2 2 0 0 0 0-2.8z"/>'},
   ]},
   {group:"리서치",items:[
     {id:"trend",label:"화장품 트렌드",icon:'<path d="M23 6l-9.5 9.5-5-5L1 18"/><path d="M17 6h6v6"/>'},
@@ -1245,25 +1253,8 @@ function buildDash(){
     <div class="wd">${w.d}</div><div class="wic">${w.ic}</div>
     <div class="wt"><span class="whi">${w.hi}°</span><span class="wlo">${w.lo}°</span></div></div>`).join("");
 
-  const checkHTML=checks.length?checks.map((t,i)=>`<div class="lrow p-${t.p}">
-    <div class="lk"></div>
-    <div class="lbody" data-goto="${t.goto}"><div class="ltitle">${t.title}</div><div class="lmeta">${t.meta}</div></div>
-    <span class="tag ${t.tc}">${t.tag}</span>
-    <button class="tdel" data-check-del="${i}" aria-label="삭제">✕</button></div>`).join("")
-    :`<div class="rempty">확인 사항이 없습니다. 아래에서 추가하세요.</div>`;
-
   document.getElementById("dash").innerHTML=`
-    <div class="page-h"><div><div class="pt">대시보드</div><div class="ps">FIORESE 상품기획 업무 현황 · 2026 상반기</div></div></div>
-
-    <div class="block">
-      <div class="block-h"><div class="bt">📥 메일 · 파일 등록 <span style="font-weight:600;color:var(--ink-3)">여기서 한 번에</span></div></div>
-      <div class="emldrop" id="upDrop">
-        <div class="emld-ic">📩</div>
-        <div class="emld-t">파일을 여기로 끌어다 놓거나 눌러서 선택</div>
-        <input type="file" id="upInput" multiple style="display:none">
-      </div>
-      <div class="savehint" id="upHint" style="padding:0 2px">메일(.eml)을 올리면 금일 업무에 추가되고 관련 탭 확인 알림이 뜹니다. 다른 파일도 등록할 수 있어요.</div>
-    </div>
+    <div class="page-h"><div><div class="pt">대시보드</div><div class="ps">FIORESE 상품기획 업무 현황</div></div></div>
 
     <div class="block">
       <div class="block-h"><div class="bt">🌤 이번 주 날씨</div><span class="bmore">${weatherLive?'수원 · 실시간':'수원 · 샘플'}</span></div>
@@ -1271,20 +1262,13 @@ function buildDash(){
     </div>
 
     <div class="block">
-      <div class="block-h"><div class="bt">✅ 확인 사항</div><span class="bmore">${checks.length}건</span></div>
-      <div class="card">${checkHTML}</div>
-      <div class="card" style="padding:12px;margin-top:8px">
-        <div class="addrow">
-          <select id="ckTab" class="tinput" style="max-width:96px">
-            <option value="none">기타</option><option value="order">발주</option><option value="cert">인증</option>
-            <option value="progress">문안</option><option value="tm">상표</option><option value="clinical">임상</option><option value="cost">원가</option>
-          </select>
-          <input id="ckTitle" class="tinput" placeholder="확인할 내용" style="flex:1;min-width:130px">
-          <input id="ckMeta" class="tinput" placeholder="메모 (선택)" style="flex:1;min-width:110px">
-          <button class="addbtn" id="ckAdd">추가</button>
-        </div>
-        <div class="savehint" id="ckHint">＋ 확인 사항을 직접 추가·삭제할 수 있어요. 자동으로 저장됩니다.</div>
+      <div class="block-h"><div class="bt">📥 업무 등록 <span style="font-weight:600;color:var(--ink-3)">파일·메일 첨부</span></div></div>
+      <div class="emldrop" id="upDrop">
+        <div class="emld-ic">📩</div>
+        <div class="emld-t">파일을 여기로 끌어다 놓거나 눌러서 선택</div>
+        <input type="file" id="upInput" multiple style="display:none">
       </div>
+      <div class="savehint" id="upHint" style="padding:0 2px">메일(.eml)을 올리면 금일 업무에 추가됩니다. 다른 파일도 등록할 수 있어요.</div>
     </div>`;
   bindUploader();
 }
@@ -1475,36 +1459,65 @@ function toggleNotifPanel(){
 
 /* 금일 업무 기본값 (저장된 내용이 없을 때만 사용) */
 const todayDefault=[];
-/* 저장 열쇠 (오늘 날짜별로 저장) */
-function todayKey(){const d=new Date();return "fiorese_today_"+d.getFullYear()+"-"+(d.getMonth()+1)+"-"+d.getDate();}
-/* 저장하기 / 불러오기 (기기 안에만 저장 · 외부로 안 나감) */
-function saveToday(){ try{ localStorage.setItem(todayKey(), JSON.stringify(todayTasks)); }catch(e){} saveToSheet(); }
-function loadToday(){
-  try{ const s=localStorage.getItem(todayKey()); if(s) return JSON.parse(s); }catch(e){}
-  return todayDefault.map(t=>({...t}));
+/* 업무일지 — 모든 날짜의 업무를 한 곳에 저장 (각 항목에 date 포함) */
+function worklogKey(){return "fiorese_worklog";}
+function loadWorklog(){ try{const s=localStorage.getItem(worklogKey());if(s)return JSON.parse(s);}catch(e){} return []; }
+function saveWorklog(){ try{localStorage.setItem(worklogKey(),JSON.stringify(workLog));}catch(e){} saveToSheet(); }
+let workLog=loadWorklog();
+function todayStr(){const d=new Date();return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");}
+function weekRange(baseDate){
+  const d=baseDate?new Date(baseDate):new Date();
+  const sun=new Date(d); sun.setDate(d.getDate()-d.getDay());
+  const sat=new Date(sun); sat.setDate(sun.getDate()+6);
+  const f=x=>x.getFullYear()+"-"+String(x.getMonth()+1).padStart(2,"0")+"-"+String(x.getDate()).padStart(2,"0");
+  return {start:f(sun),end:f(sat)};
 }
-let todayTasks=loadToday();
 
+let todayViewDate=todayStr(); // 현재 보고 있는 날짜
+let todaySearch=""; // 검색어
 function buildToday(){
-  const today=new Date();
-  const dstr=`${today.getMonth()+1}월 ${today.getDate()}일`;
   render();
+  function fmtLabel(ds){
+    const [y,m,d]=ds.split("-").map(Number);
+    const wd=["일","월","화","수","목","금","토"][new Date(y,m-1,d).getDay()];
+    return `${m}월 ${d}일 (${wd})`;
+  }
   function render(){
-    const rows=todayTasks.length?todayTasks.map((t,i)=>`<div class="lrow ${t.done?'tdone':''}">
+    // 검색 중이면 전체에서 검색, 아니면 선택 날짜만
+    let list, isSearch=todaySearch.trim().length>0;
+    if(isSearch){
+      const q=todaySearch.trim().toLowerCase();
+      list=workLog.map((t,i)=>({t,i})).filter(o=>((o.t.title||"")+(o.t.meta||"")).toLowerCase().includes(q));
+    }else{
+      list=workLog.map((t,i)=>({t,i})).filter(o=>o.t.date===todayViewDate);
+    }
+    const rows=list.length?list.map(({t,i})=>`<div class="lrow ${t.done?'tdone':''}">
       <div class="tchk ${t.done?'on':''}" data-today-chk="${i}">${t.done?'✓':''}</div>
-      <div class="lbody" data-today-edit="${i}" style="cursor:pointer"><div class="ltitle" style="${t.done?'text-decoration:line-through;color:var(--ink-3)':''}">${t.title}</div><div class="lmeta">${t.meta}</div></div>
+      <div class="lbody" data-today-edit="${i}" style="cursor:pointer"><div class="ltitle" style="${t.done?'text-decoration:line-through;color:var(--ink-3)':''}">${t.title}</div><div class="lmeta">${isSearch?t.date+' · ':''}${t.meta}</div></div>
       <span class="tag ${t.src==='메일'?'t-blue':t.src==='카톡'?'t-amber':'t-violet'}">${t.src}</span>
       <button class="tdel" data-today-del="${i}" aria-label="삭제">✕</button>
-    </div>`).join(""):`<div class="rempty">오늘 등록된 업무가 없습니다. 아래에서 추가하세요.</div>`;
+    </div>`).join(""):`<div class="rempty">${isSearch?'검색 결과가 없습니다.':'이 날짜에 등록된 업무가 없습니다. 아래에서 추가하세요.'}</div>`;
+    const headLabel=isSearch?`"${todaySearch}" 검색 결과`:fmtLabel(todayViewDate);
+    const isToday=todayViewDate===todayStr();
     document.getElementById("today").innerHTML=`
-      <div class="page-h"><div><div class="pt">금일 업무</div><div class="ps">${dstr} · 오늘 처리할 업무</div></div></div>
-      <div class="banner info">👉 카톡·구두로 진행된 내용을 아래에서 직접 추가하세요. 입력한 내용은 <b>구글 시트에 자동 저장</b>되어, 컴퓨터·아이폰 어디서 열어도 똑같이 보입니다.</div>
+      <div class="page-h"><div><div class="pt">금일 업무</div><div class="ps">날짜별 업무 일지 · 날짜 선택·검색 가능</div></div></div>
       <div class="block">
-        <div class="block-h"><div class="bt">✅ 오늘 할 일</div><span class="bmore">${todayTasks.filter(t=>!t.done).length}건 남음 · 총 ${todayTasks.length}건</span></div>
+        <div class="card" style="padding:11px 13px;margin-bottom:10px">
+          <div class="addrow" style="gap:7px;flex-wrap:wrap;align-items:center">
+            <button class="cal-nav" id="tdPrev" aria-label="이전 날">‹</button>
+            <input type="date" id="tdDate" value="${todayViewDate}" class="tinput" style="max-width:150px">
+            <button class="cal-nav" id="tdNext" aria-label="다음 날">›</button>
+            ${isToday?'':'<button class="addbtn" id="tdToday" style="background:var(--gray-soft);color:var(--ink-2)">오늘로</button>'}
+            <input id="tdSearch" class="tinput" placeholder="🔍 전체 검색" style="flex:1;min-width:120px" value="${todaySearch}">
+          </div>
+        </div>
+      </div>
+      <div class="block">
+        <div class="block-h"><div class="bt">✅ ${headLabel}</div><span class="bmore">${list.filter(o=>!o.t.done).length}건 남음 · 총 ${list.length}건</span></div>
         <div class="card">${rows}</div>
       </div>
       <div class="block">
-        <div class="block-h"><div class="bt">➕ 업무 직접 추가 <span style="font-weight:600;color:var(--ink-3)">(카톡·구두)</span></div></div>
+        <div class="block-h"><div class="bt">➕ 업무 추가 <span style="font-weight:600;color:var(--ink-3)">(${isSearch?'오늘':fmtLabel(todayViewDate)}에 추가)</span></div></div>
         <div class="card" style="padding:14px">
           <div class="addrow">
             <select id="tSrc" class="tinput" style="max-width:90px"><option>구두</option><option>카톡</option><option>메일</option></select>
@@ -1512,7 +1525,7 @@ function buildToday(){
             <input id="tMeta" class="tinput" placeholder="메모 (선택)" style="flex:1;min-width:120px">
             <button class="addbtn" id="tAdd">추가</button>
           </div>
-          <div class="savehint" id="saveHint">＋ 추가하거나 완료 체크하면 자동으로 저장됩니다. (메일은 대시보드에서 등록)</div>
+          <div class="savehint" id="saveHint">＋ 추가하거나 완료 체크하면 자동으로 저장됩니다.</div>
         </div>
       </div>`;
   }
@@ -1520,24 +1533,42 @@ function buildToday(){
     const h=document.getElementById("saveHint");
     if(h){h.textContent="✓ 저장되었습니다.";h.classList.add("ok");setTimeout(()=>{h.textContent="＋ 추가하거나 완료 체크하면 자동으로 저장됩니다.";h.classList.remove("ok");},1500);}
   }
+  function shiftDate(delta){
+    const [y,m,d]=todayViewDate.split("-").map(Number);
+    const nd=new Date(y,m-1,d); nd.setDate(nd.getDate()+delta);
+    todayViewDate=nd.getFullYear()+"-"+String(nd.getMonth()+1).padStart(2,"0")+"-"+String(nd.getDate()).padStart(2,"0");
+    todaySearch=""; render();
+  }
   const sec=document.getElementById("today");
   sec.onclick=e=>{
     const chk=e.target.closest("[data-today-chk]");
-    if(chk){const i=+chk.dataset.todayChk;todayTasks[i].done=!todayTasks[i].done;saveToday();render();flashSaved();return;}
+    if(chk){const i=+chk.dataset.todayChk;workLog[i].done=!workLog[i].done;saveWorklog();render();flashSaved();return;}
     const del=e.target.closest("[data-today-del]");
-    if(del){const i=+del.dataset.todayDel;todayTasks.splice(i,1);saveToday();render();flashSaved();return;}
+    if(del){const i=+del.dataset.todayDel;workLog.splice(i,1);saveWorklog();render();flashSaved();return;}
     const ed=e.target.closest("[data-today-edit]");
-    if(ed){const i=+ed.dataset.todayEdit;openItemEdit({type:"today",i},todayTasks[i].title,todayTasks[i].meta,"금일 업무 수정");return;}
+    if(ed){const i=+ed.dataset.todayEdit;openItemEdit({type:"today",i},workLog[i].title,workLog[i].meta,"업무 수정");return;}
+    if(e.target.id==="tdPrev"){shiftDate(-1);return;}
+    if(e.target.id==="tdNext"){shiftDate(1);return;}
+    if(e.target.id==="tdToday"){todayViewDate=todayStr();todaySearch="";render();return;}
     if(e.target.id==="tAdd"){
       const title=document.getElementById("tTitle").value.trim();
       const src=document.getElementById("tSrc").value;
       const meta=document.getElementById("tMeta").value.trim()||"직접 추가";
-      if(title){todayTasks.push({done:false,src,title,meta});saveToday();render();flashSaved();}
+      // 검색 중이면 오늘 날짜에, 아니면 선택 날짜에 추가
+      const addDate=todaySearch.trim()?todayStr():todayViewDate;
+      if(title){workLog.push({done:false,src,title,meta,date:addDate});saveWorklog();todaySearch="";render();flashSaved();}
       return;
     }
   };
   sec.onkeydown=e=>{
     if(e.key==="Enter"&&e.target.id==="tTitle"){document.getElementById("tAdd").click();}
+  };
+  sec.oninput=e=>{
+    if(e.target.id==="tdDate"){todayViewDate=e.target.value;todaySearch="";render();}
+    if(e.target.id==="tdSearch"){todaySearch=e.target.value;render();
+      // 검색창 포커스 유지
+      const s=document.getElementById("tdSearch"); if(s){s.focus();s.setSelectionRange(s.value.length,s.value.length);}
+    }
   };
 }
 
@@ -1593,13 +1624,14 @@ function handleEmlFiles(fileList){
   const emls=all.filter(f=>/\.eml$/i.test(f.name)||f.type==="message/rfc822");
   const others=all.filter(f=>!(/\.eml$/i.test(f.name)||f.type==="message/rfc822"));
   let added=0, notified=0;
-  // 메일 외 파일: 파일명으로 금일 업무에 추가
+  const _today=todayStr();
+  // 메일 외 파일: 파일명으로 오늘 업무에 추가
   others.forEach(f=>{
-    todayTasks.push({done:false,src:"파일",title:"📎 "+f.name,meta:"파일 등록 · "+(Math.round(f.size/1024))+"KB"});
+    workLog.push({done:false,src:"파일",title:"📎 "+f.name,meta:"파일 등록 · "+(Math.round(f.size/1024))+"KB",date:_today});
     added++;
   });
   if(!emls.length){
-    saveToday(); if(document.getElementById("today").innerHTML)buildToday();
+    saveWorklog(); if(document.getElementById("today").innerHTML)buildToday();
     flashUploadMsg(`파일 ${added}건 등록`); return;
   }
   let pending=emls.length;
@@ -1608,14 +1640,14 @@ function handleEmlFiles(fileList){
     reader.onload=()=>{
       const info=parseEml(reader.result);
       if(info.subject){
-        todayTasks.push({done:false,src:"메일",title:info.subject,meta:(info.from?info.from:"")+(info.date?" · "+info.date:"")||"메일 등록"});
+        workLog.push({done:false,src:"메일",title:info.subject,meta:(info.from?info.from:"")+(info.date?" · "+info.date:"")||"메일 등록",date:_today});
         notified+=addNotifsForMail(info.subject,info.from);
         added++;
       }
-      if(--pending===0){ saveToday(); if(document.getElementById("today").innerHTML)buildToday();
+      if(--pending===0){ saveWorklog(); if(document.getElementById("today").innerHTML)buildToday();
         flashUploadMsg(`${added}건 등록${notified?` · 관련 탭 알림 ${notified}건`:""}`); }
     };
-    reader.onerror=()=>{ if(--pending===0){saveToday();if(document.getElementById("today").innerHTML)buildToday();flashUploadMsg(added+"건 등록됨");} };
+    reader.onerror=()=>{ if(--pending===0){saveWorklog();if(document.getElementById("today").innerHTML)buildToday();flashUploadMsg(added+"건 등록됨");} };
     reader.readAsText(file,"utf-8");
   });
 }
@@ -1631,45 +1663,80 @@ function bindUploader(){
 }
 
 /* ============================================================
-   주간 업무보고 (이번주 진행 / 다음주 예정)
+   주간 업무보고 (업무일지에서 해당 주 자동 반영)
 ============================================================ */
-const weeklyDefault={thisWeek:[],nextWeek:[]};
-function weeklyKey(){return "fiorese_weekly";}
-function loadWeekly(){ try{const s=localStorage.getItem(weeklyKey());if(s){const o=JSON.parse(s);if(!o.thisWeek)o.thisWeek=[];if(!o.nextWeek)o.nextWeek=[];return o;}}catch(e){} return JSON.parse(JSON.stringify(weeklyDefault)); }
-function saveWeekly(){ try{localStorage.setItem(weeklyKey(),JSON.stringify(weeklyData));}catch(e){} saveToSheet(); }
-let weeklyData=loadWeekly();
+let weekBase=todayStr(); // 현재 보고 있는 주의 기준 날짜
+let weekSearch="";
 function buildWeekly(){
-  function col(list,which){
-    return (list.length?list.map((x,i)=>`<div class="lrow p-${which==='nextWeek'?'amber':'done'}">
-      <div class="lk"></div>
-      <div class="lbody" data-wkedit="${which}:${i}" style="cursor:pointer"><div class="ltitle">${x.t}</div><div class="lmeta">${x.m}</div></div>
-      ${x.flag?`<span class="tag t-amber">${x.flag}</span>`:'<span class="tag" style="background:var(--done-soft);color:#12833d">완료</span>'}
-      <button class="tdel" data-wkdel="${which}:${i}" aria-label="삭제">✕</button>
-    </div>`).join(""):`<div class="rempty">항목이 없습니다. 아래에서 추가하세요.</div>`);
+  function fmtRange(r){
+    const a=r.start.split("-"), b=r.end.split("-");
+    return `${+a[1]}/${+a[2]} ~ ${+b[1]}/${+b[2]}`;
   }
-  function adder(which){
-    return `<div class="card" style="padding:12px;margin-top:8px">
-      <div class="addrow">
-        <input class="tinput wk-t" data-wkadd-t="${which}" placeholder="업무 내용" style="flex:1;min-width:130px">
-        <input class="tinput wk-m" data-wkadd-m="${which}" placeholder="메모 (선택)" style="flex:1;min-width:100px">
-        <button class="addbtn" data-wkadd="${which}">추가</button>
+  function render(){
+    const r=weekRange(weekBase);
+    const isSearch=weekSearch.trim().length>0;
+    let list;
+    if(isSearch){
+      const q=weekSearch.trim().toLowerCase();
+      list=workLog.filter(x=>((x.title||"")+(x.meta||"")).toLowerCase().includes(q));
+    }else{
+      list=workLog.filter(x=>x.date>=r.start && x.date<=r.end);
+    }
+    // 날짜별 그룹핑
+    const byDate={};
+    list.forEach(x=>{ (byDate[x.date]=byDate[x.date]||[]).push(x); });
+    const dates=Object.keys(byDate).sort();
+    const WD=["일","월","화","수","목","금","토"];
+    const body=dates.length?dates.map(ds=>{
+      const [y,m,d]=ds.split("-").map(Number);
+      const wd=WD[new Date(y,m-1,d).getDay()];
+      const items=byDate[ds].map(x=>`<div class="lrow ${x.done?'tdone':''}">
+        <div class="lk"></div>
+        <div class="lbody"><div class="ltitle" style="${x.done?'text-decoration:line-through;color:var(--ink-3)':''}">${x.title}</div><div class="lmeta">${x.meta}</div></div>
+        ${x.done?'<span class="tag" style="background:var(--done-soft);color:#12833d">완료</span>':`<span class="tag ${x.src==='메일'?'t-blue':x.src==='카톡'?'t-amber':'t-violet'}">${x.src}</span>`}
+      </div>`).join("");
+      return `<div style="margin-bottom:14px">
+        <div style="font-weight:800;font-size:13px;color:var(--ink-2);margin:4px 2px 7px">${m}월 ${d}일 (${wd})</div>
+        <div class="card">${items}</div>
+      </div>`;
+    }).join(""):`<div class="rempty">${isSearch?'검색 결과가 없습니다.':'이 주에 등록된 업무가 없습니다. 금일 업무에서 등록하면 여기 자동 반영됩니다.'}</div>`;
+    const doneCnt=list.filter(x=>x.done).length;
+    document.getElementById("weekly").innerHTML=`
+      <div class="page-h"><div><div class="pt">주간 업무보고</div><div class="ps">금일 업무가 주간 단위로 자동 반영됩니다</div></div></div>
+      <div class="block">
+        <div class="card" style="padding:11px 13px;margin-bottom:10px">
+          <div class="addrow" style="gap:7px;flex-wrap:wrap;align-items:center">
+            <button class="cal-nav" id="wkPrev" aria-label="이전 주">‹</button>
+            <div style="font-weight:800;font-size:13px;min-width:120px;text-align:center">${isSearch?'전체 검색':fmtRange(r)}</div>
+            <button class="cal-nav" id="wkNext" aria-label="다음 주">›</button>
+            <button class="addbtn" id="wkThis" style="background:var(--gray-soft);color:var(--ink-2)">이번 주</button>
+            <input id="wkSearch" class="tinput" placeholder="🔍 전체 검색" style="flex:1;min-width:120px" value="${weekSearch}">
+          </div>
+        </div>
       </div>
-    </div>`;
+      <div class="block">
+        <div class="block-h"><div class="bt">✅ ${isSearch?'검색 결과':'이번 주 진행'}</div><span class="bmore">총 ${list.length}건 · 완료 ${doneCnt}건</span></div>
+        ${body}
+      </div>`;
   }
-  document.getElementById("weekly").innerHTML=`
-    <div class="page-h"><div><div class="pt">주간 업무보고</div><div class="ps">이번 주 진행 · 다음 주 예정 (직접 추가·삭제 가능)</div></div></div>
-    <div class="wk-grid">
-      <div class="block">
-        <div class="block-h"><div class="bt">✅ 이번 주 진행</div><span class="bmore">${weeklyData.thisWeek.length}건</span></div>
-        <div class="card">${col(weeklyData.thisWeek,'thisWeek')}</div>
-        ${adder('thisWeek')}
-      </div>
-      <div class="block">
-        <div class="block-h"><div class="bt">📌 다음 주 예정 · 챙길 것</div><span class="bmore">${weeklyData.nextWeek.length}건</span></div>
-        <div class="card">${col(weeklyData.nextWeek,'nextWeek')}</div>
-        ${adder('nextWeek')}
-      </div>
-    </div>`;
+  render();
+  const sec=document.getElementById("weekly");
+  function shiftWeek(delta){
+    const [y,m,d]=weekBase.split("-").map(Number);
+    const nd=new Date(y,m-1,d); nd.setDate(nd.getDate()+delta*7);
+    weekBase=nd.getFullYear()+"-"+String(nd.getMonth()+1).padStart(2,"0")+"-"+String(nd.getDate()).padStart(2,"0");
+    weekSearch=""; render();
+  }
+  sec.onclick=e=>{
+    if(e.target.id==="wkPrev"){shiftWeek(-1);return;}
+    if(e.target.id==="wkNext"){shiftWeek(1);return;}
+    if(e.target.id==="wkThis"){weekBase=todayStr();weekSearch="";render();return;}
+  };
+  sec.oninput=e=>{
+    if(e.target.id==="wkSearch"){weekSearch=e.target.value;render();
+      const s=document.getElementById("wkSearch"); if(s){s.focus();s.setSelectionRange(s.value.length,s.value.length);}
+    }
+  };
 }
 
 /* ============================================================
@@ -1758,8 +1825,7 @@ function saveItemEdit(){
   const m=document.getElementById("itemEditM").value.trim();
   if(!t){closeItemEdit();return;}
   const c=itemEditCtx;
-  if(c.type==="today"){ todayTasks[c.i].title=t; todayTasks[c.i].meta=m; saveToday(); buildToday(); }
-  else if(c.type==="weekly"){ weeklyData[c.which][c.i].t=t; weeklyData[c.which][c.i].m=m; saveWeekly(); buildWeekly(); }
+  if(c.type==="today"){ workLog[c.i].title=t; workLog[c.i].meta=m; saveWorklog(); buildToday(); }
   closeItemEdit();
 }
 
@@ -1799,7 +1865,7 @@ function buildProductInfo(){
     <td class="vline pi-toggle" data-pitoggle="${i}" data-pic="vegan" title="클릭해서 전환">${yn(p.vegan)}</td>
     <td class="vline pi-toggle" data-pitoggle="${i}" data-pic="cpnp" title="클릭해서 전환">${yn(p.cpnp)}</td>
     <td class="vline pi-toggle" data-pitoggle="${i}" data-pic="mocra" title="클릭해서 전환">${yn(p.mocra)}</td>
-    <td class="vline">${(p.kor||p.eng)?`<span class="doclink" data-ing="${i}">🧾 보기</span>`:'<span class="tmemo-inline dim">개발 중</span>'}</td>
+    <td class="vline"><span class="doclink" data-ing="${i}">🧾 다 보기</span></td>
     <td class="vline"><button class="tdel" data-pidel="${i}" aria-label="삭제">✕</button></td></tr>`).join("");
   const tableHTML=`<div class="tablecard"><div class="scrollx"><table class="vtable">${head}<tbody>${body}</tbody></table></div></div>`;
 
@@ -1819,13 +1885,26 @@ function buildProductInfo(){
 }
 
 /* 전성분 팝업 */
+let ingEditIdx=-1;
 function openIngredients(idx){
   const p=productInfo[idx];
+  ingEditIdx=idx;
   document.getElementById("ingTitle").textContent=`${p.name} · 전성분`;
   document.getElementById("ingSub").textContent=`${p.code} · ${p.vol} · ${p.cat}`;
-  document.getElementById("ingKor").textContent=p.kor||"(국문 전성분 미등록)";
-  document.getElementById("ingEng").textContent=p.eng||"(영문 전성분 미등록)";
+  document.getElementById("ingKorEdit").value=p.kor||"";
+  document.getElementById("ingEngEdit").value=p.eng||"";
+  const hint=document.getElementById("ingSaveHint");
+  if(hint){hint.textContent="＋ 수정 후 저장하면 자동으로 반영됩니다.";hint.classList.remove("ok");}
   document.getElementById("ingModal").classList.add("show");
+}
+function saveIngredientsEdit(){
+  if(ingEditIdx<0) return;
+  productInfo[ingEditIdx].kor=document.getElementById("ingKorEdit").value.trim();
+  productInfo[ingEditIdx].eng=document.getElementById("ingEngEdit").value.trim();
+  savePi(); buildProductInfo();
+  const hint=document.getElementById("ingSaveHint");
+  if(hint){hint.textContent="✓ 저장되었습니다.";hint.classList.add("ok");}
+  setTimeout(()=>{document.getElementById("ingModal").classList.remove("show");},700);
 }
 function closeIngredients(){document.getElementById("ingModal").classList.remove("show");}
 const ingredientDefault=[];
@@ -1880,10 +1959,10 @@ function buildIngredient(){
 ============================================================ */
 function renderNav(){
   document.getElementById("sbNav").innerHTML=NAV.map(g=>`
-    <div class="sb-group">${g.group}</div>
+    ${g.group?`<div class="sb-group">${g.group}</div>`:''}
     ${g.items.map(it=>`<button class="sb-item ${it.id==='dash'?'active':''}" data-goto="${it.id}">
       <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor">${it.icon}</svg>
-      <span>${it.label}</span>${it.cnt?`<span class="cnt">${it.cnt}</span>`:''}
+      <span>${it.label}</span>
     </button>`).join("")}
   `).join("");
   // 모바일 하단 탭바 (주요 5개)
@@ -1917,10 +1996,9 @@ function renderAll(){
     tmData = loadTm();
     checks = loadChecks();
     notifs = loadNotifs();
-    weeklyData = loadWeekly();
     trendData = loadTrend();
     ingredientData = loadIng();
-    todayTasks = loadToday();
+    workLog = loadWorklog();
     scheduleByDate = loadSched();
   }catch(e){ console.log("데이터 로딩 일부 실패:",e); }
   renderAll();
@@ -1941,6 +2019,12 @@ function switchTab(id){
   document.querySelectorAll(".sb-item").forEach(b=>b.classList.toggle("active",b.dataset.goto===id));
   document.querySelectorAll("#tabbar button").forEach(b=>b.classList.toggle("active",b.dataset.goto===id));
   document.getElementById("hTitle").textContent=TAB_TITLE[id]||"";
+  // 탭 진입 시 최신 데이터로 다시 그림 (금일↔주간 연동 등)
+  try{
+    if(id==="weekly") buildWeekly();
+    else if(id==="today") buildToday();
+    else if(id==="dash"){ buildDash(); buildRail(); }
+  }catch(e){ console.log("탭 렌더:",e); }
   // 우측 레일 노출 여부
   document.getElementById("content").classList.toggle("no-rail",!RAIL_TABS.has(id));
   document.getElementById("rail").style.display=RAIL_TABS.has(id)?"":"none";
@@ -2072,23 +2156,9 @@ document.body.addEventListener("click",e=>{
     }
     return;
   }
-  // 주간 업무보고 삭제
-  const wkDel=e.target.closest("[data-wkdel]");
-  if(wkDel){const [which,i]=wkDel.dataset.wkdel.split(":");weeklyData[which].splice(+i,1);saveWeekly();buildWeekly();return;}
-  // 주간 업무보고 편집
-  const wkEd=e.target.closest("[data-wkedit]");
-  if(wkEd){const [which,i]=wkEd.dataset.wkedit.split(":");const it=weeklyData[which][+i];openItemEdit({type:"weekly",which,i:+i},it.t,it.m,"주간 업무 수정");return;}
   // 항목 편집 모달 저장/닫기
   if(e.target.id==="itemEditSave"){saveItemEdit();return;}
   if(e.target.closest("#itemEditClose")||e.target.id==="itemEditModal"){closeItemEdit();return;}
-  // 주간 업무보고 추가
-  const wkAdd=e.target.closest("[data-wkadd]");
-  if(wkAdd){const which=wkAdd.dataset.wkadd;
-    const tI=document.querySelector(`[data-wkadd-t="${which}"]`), mI=document.querySelector(`[data-wkadd-m="${which}"]`);
-    const t=(tI.value||"").trim(), m=(mI.value||"").trim();
-    if(t){const item={t,m:m||"직접 추가"};if(which==="nextWeek")item.flag="예정";weeklyData[which].push(item);saveWeekly();buildWeekly();}
-    return;
-  }
   // 원가 값 편집
   const costcell=e.target.closest(".editable[data-costedit]");
   if(costcell&&!costcell.querySelector("input")){
@@ -2262,6 +2332,7 @@ document.body.addEventListener("click",e=>{
   if(doc){openPreview(doc.dataset.file);return;}
   const ing=e.target.closest(".doclink[data-ing]");
   if(ing){openIngredients(+ing.dataset.ing);return;}
+  if(e.target.id==="ingSave"){saveIngredientsEdit();return;}
   if(e.target.closest("#ingClose")||e.target.id==="ingModal"){closeIngredients();return;}
   if(e.target.closest("#previewClose")||e.target.id==="previewModal"){closePreview();return;}
 });
