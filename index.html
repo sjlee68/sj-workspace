@@ -575,6 +575,7 @@
    구글 시트 연동 (창고 = 구글 시트 / 창고지기 = 앱스 스크립트)
 ============================================================ */
 const SHEET_URL = "https://script.google.com/macros/s/AKfycbxP1vIctSdvbRqorq8ie3Dg50mcNhy9hnHn1b0hBoxHhMpfEMhvg3btYi3VAz2MXRjm/exec";
+const SHEET_KEY = "fio_San_z0hcIV-I9o7B5gu-qw";  // 시트 접근 열쇠 (앱스 스크립트와 동일)
 
 // 시트에 저장할 데이터 열쇠 목록 (localStorage 키와 동일)
 const SYNC_KEYS = [
@@ -591,7 +592,7 @@ let sheetLoaded = false;
 // 시트에서 전체 데이터 불러와 localStorage에 넣기 (켤 때 1회)
 async function loadFromSheet(){
   try{
-    const res = await fetch(SHEET_URL);
+    const res = await fetch(SHEET_URL + "?key=" + encodeURIComponent(SHEET_KEY));
     const text = await res.text();
     const all = JSON.parse(text || "{}");
     if(all && typeof all === "object"){
@@ -616,7 +617,7 @@ function saveToSheet(){
       if(v !== null) all[k] = v;
     });
     try{
-      await fetch(SHEET_URL, {
+      await fetch(SHEET_URL + "?key=" + encodeURIComponent(SHEET_KEY), {
         method:"POST",
         body: JSON.stringify(all)
       });
@@ -698,7 +699,7 @@ let orderData=loadOrder();
 
 /* ---- 상표 ----
    group: domestic(국내) / madrid(해외-마드리드) / individual(해외-개별)
-   마드리드: 국제등록번호(1838519, 1899180)를 여러 지정국이 공유
+   마드리드: 하나의 국제등록번호를 여러 지정국이 공유
 */
 const tmDefault=[];
 function tmKey(){return "fiorese_tm";}
@@ -1128,8 +1129,8 @@ const files=[
   {type:"doc",name:"상표 출원 현황 정리 (국내·마드리드·개별).docx",folder:"규제·인증",by:"이",date:"2026.05.02",link:true},
   {type:"xls",name:"2026 상반기 발주 캘린더.xlsx",folder:"부자재·패키지",by:"이",date:"2026.02.20",link:true},
   {type:"img",name:"젤리 클렌저 에어리스 펌프 용기 도면.png",folder:"부자재·패키지",by:"이",date:"2026.03.22",link:true},
-  {type:"xls",name:"퓨어 하이드라 워터 토너 타임스케줄.xlsx",folder:"부자재·패키지",by:"이",date:"2026.07.02",link:true},
-  {type:"xls",name:"퓨어 하이드라 블루 PDRN 클렌저 타임스케줄.xlsx",folder:"부자재·패키지",by:"이",date:"2026.07.02",link:true},
+  {type:"xls",name:"타임스케줄 A.xlsx",folder:"부자재·패키지",by:"이",date:"2026.07.02",link:true},
+  {type:"xls",name:"타임스케줄 B.xlsx",folder:"부자재·패키지",by:"이",date:"2026.07.02",link:true},
   {type:"pdf",name:"Cosmoprof CBE ASEAN 2026 바이어 상담 31건.pdf",folder:"바이어·수출",by:"이",date:"2026.06.26",link:true},
 ];
 
