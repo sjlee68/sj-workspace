@@ -542,9 +542,13 @@
       <button class="modal-x" id="trendClose">✕</button>
     </div>
     <div class="modal-body">
-      <div id="trendTitle" style="font-size:15px;font-weight:800;line-height:1.45;margin-bottom:12px"></div>
-      <div class="ing-text" id="trendBody" style="line-height:1.75"></div>
-      <div id="trendSrc" style="font-size:11.5px;color:var(--ink-3);font-weight:700;margin-top:14px"></div>
+      <div id="trendTitle" style="font-size:15px;font-weight:800;line-height:1.45;margin-bottom:14px"></div>
+      <div id="trendPoints" style="background:var(--blue-soft);border-radius:11px;padding:13px 15px;margin-bottom:14px;line-height:1.85;font-size:13px"></div>
+      <div id="trendFullWrap">
+        <div style="font-size:12px;font-weight:800;color:var(--ink-2);margin-bottom:7px">📄 기사 전문 (한국어)</div>
+        <div class="ing-text" id="trendBody" style="line-height:1.8"></div>
+      </div>
+      <div id="trendSrc" style="font-size:11.5px;color:var(--ink-3);font-weight:700;margin-top:16px"></div>
       <a id="trendLink" href="#" target="_blank" rel="noopener" class="trend-link">🔗 기사 원문 보기</a>
     </div>
   </div>
@@ -570,7 +574,7 @@
 /* ============================================================
    구글 시트 연동 (창고 = 구글 시트 / 창고지기 = 앱스 스크립트)
 ============================================================ */
-const SHEET_URL = "https://script.google.com/macros/s/AKfycbxZ9znBPVoxe5C-6aTQw-I6b6e2oh9pYrHogZFZ2Gu0oIOrikBi58UHF_LwhDmZemCA/exec";
+const SHEET_URL = "https://script.google.com/macros/s/AKfycbxP1vIctSdvbRqorq8ie3Dg50mcNhy9hnHn1b0hBoxHhMpfEMhvg3btYi3VAz2MXRjm/exec";
 
 // 시트에 저장할 데이터 열쇠 목록 (localStorage 키와 동일)
 const SYNC_KEYS = [
@@ -1572,7 +1576,7 @@ let notifs=loadNotifs();
 function addNotifsForMail(subject,from){
   const hits=detectTabs(subject+" "+from);
   hits.forEach(r=>{
-    notifs.unshift({tab:r.tab,label:r.label,icon:r.icon,title:`${r.label} 확인 필요`,msg:subject,time:Date.now(),read:false});
+    notifs.unshift({tab:r.tab,label:r.label||r.tag||"확인",icon:r.icon||"",title:`${r.label||r.tag||"확인"} 확인 필요`,msg:subject,time:Date.now(),read:false});
   });
   if(hits.length){ saveNotifs(); renderNotifDot(); }
   return hits.length;
@@ -1888,7 +1892,16 @@ function openTrend(i){
   document.getElementById("trendCat").textContent=t.cat;
   document.getElementById("trendDate").textContent=t.date;
   document.getElementById("trendTitle").textContent=t.title;
-  document.getElementById("trendBody").textContent=t.body;
+  // 요약 포인트 (points 배열이 있으면 체크 리스트로, 없으면 sum 사용)
+  const pts=Array.isArray(t.points)&&t.points.length?t.points:(t.sum?[t.sum]:[]);
+  document.getElementById("trendPoints").innerHTML=pts.length
+    ? "<div style='font-weight:800;margin-bottom:6px;font-size:12px;color:var(--ink-2)'>✅ 핵심 요약</div>"+pts.map(p=>`<div style="display:flex;gap:7px;margin:3px 0"><span>✅</span><span>${p}</span></div>`).join("")
+    : "";
+  document.getElementById("trendPoints").style.display=pts.length?"":"none";
+  // 기사 전문 (full이 있으면 full, 없으면 body)
+  const full=t.full||t.body||"";
+  document.getElementById("trendBody").textContent=full;
+  document.getElementById("trendFullWrap").style.display=full?"":"none";
   document.getElementById("trendSrc").textContent="📰 출처: "+t.src;
   const link=document.getElementById("trendLink");
   link.href=t.url; link.style.display=t.url?"":"none";
