@@ -670,7 +670,12 @@ function showSyncBadge(state){
 const productInfoDefault=[];
 function piKey(){return "fiorese_productinfo";}
 function loadPi(){ try{const s=localStorage.getItem(piKey());if(s)return JSON.parse(s);}catch(e){} return JSON.parse(JSON.stringify(productInfoDefault)); }
-function savePi(){ try{localStorage.setItem(piKey(),JSON.stringify(productInfo));}catch(e){} saveToSheet(); }
+function savePi(){
+  try{localStorage.setItem(piKey(),JSON.stringify(productInfo));}catch(e){}
+  // 제품정보 변경 시 진행·인증 자동 동기화
+  try{ syncFromProductInfo(); localStorage.setItem(prodKey(),JSON.stringify(products)); localStorage.setItem(certKey(),JSON.stringify(certData)); }catch(e){}
+  saveToSheet();
+}
 let productInfo=loadPi();
 
 const clinicalDefault=[];
@@ -700,6 +705,35 @@ function certKey(){return "fiorese_cert";}
 function loadCert(){ try{const s=localStorage.getItem(certKey());if(s)return JSON.parse(s);}catch(e){} return JSON.parse(JSON.stringify(certDefault)); }
 function saveCert(){ try{localStorage.setItem(certKey(),JSON.stringify(certData));}catch(e){} saveToSheet(); }
 let certData=loadCert();
+
+/* ============================================================
+   제품정보 기준 자동 연동
+   - 제품정보(productInfo)에 있는 제품을 기준으로
+     진행현황(products)·인증현황(certData)의 제품 목록을 맞춤
+   - 제품 추가 시 자동 생성, 삭제 시 자동 제거, 이름·라인업 동기화
+============================================================ */
+function syncFromProductInfo(){
+  if(typeof productInfo==="undefined"||!Array.isArray(productInfo)) return;
+  const names=productInfo.map(p=>p.name);
+
+  // 1) 진행현황 동기화
+  const prodByName={}; products.forEach(p=>{prodByName[p.name]=p;});
+  const newProducts=productInfo.map(pi=>{
+    const ex=prodByName[pi.name];
+    if(ex){ ex.line=pi.line; ex.vol=pi.vol; return ex; } // 기존 진행상태 유지, 라인·용량 갱신
+    return { line:pi.line, name:pi.name, vol:pi.vol, tracks:{}, mun:{} }; // 새 제품 (빈 진행상태)
+  });
+  products.length=0; newProducts.forEach(p=>products.push(p));
+
+  // 2) 인증현황 동기화
+  const certByName={}; certData.forEach(c=>{certByName[c.name]=c;});
+  const newCert=productInfo.map(pi=>{
+    const ex=certByName[pi.name];
+    if(ex){ ex.line=pi.line; return ex; } // 기존 인증번호 유지, 라인 갱신
+    return { line:pi.line, name:pi.name, vegan:{}, cpnp:{}, mocra:{}, status:["wait","예정"] }; // 새 제품 (빈 인증)
+  });
+  certData.length=0; newCert.forEach(c=>certData.push(c));
+}
 
 /* ---- 원가 ---- */
 const costDefault=[];
@@ -766,6 +800,7 @@ function prodProgress(p){
 ============================================================ */
 
 function buildProgress(){
+  syncFromProductInfo();
   // 상태 → 표시 규칙: done=완료(배지), hold=홀딩(배지), 그 외는 메모 텍스트로
   function statusCell(st,memo){
     if(st==="done") return `${badge("done","완료")}`;
@@ -897,6 +932,7 @@ const CLIN_STATUS=[["done","완료"],["prog","진행중"],["wait","대기"]];
 
 /* 인증 */
 function buildCert(){
+  syncFromProductInfo();
   // 빈 값 채움: 진행중이면 '진행중', 아니면 'X'
   function fill(v,inProgress){ return v?v:(inProgress?'<span class="cert-prog">진행중</span>':'<span class="cert-x">X</span>'); }
   function isProg(c){ return c.status[0]==="wait"||c.status[0]==="prog"; }
