@@ -223,6 +223,8 @@
   .prog-cell:hover{background:var(--blue-soft)}
   .matct{cursor:pointer}
   .matct:hover{background:var(--blue-soft)}
+  .cal-nav{border:none;background:var(--gray-soft);color:var(--ink-2);width:24px;height:24px;border-radius:7px;font-size:15px;font-weight:800;cursor:pointer;line-height:1;flex-shrink:0}
+  .cal-nav:hover{background:var(--brand);color:#fff}
   .ed-pencil{color:var(--ink-3);font-size:10px;opacity:0;transition:.1s}
   .stedit:hover .ed-pencil{opacity:1}
   /* .eml 드롭 영역 */
@@ -574,7 +576,7 @@ const SHEET_URL = "https://script.google.com/macros/s/AKfycbxZ9znBPVoxe5C-6aTQw-
 const SYNC_KEYS = [
   "fiorese_productinfo","fiorese_clinical","fiorese_products","fiorese_cert",
   "fiorese_cost","fiorese_order","fiorese_tm","fiorese_checks","fiorese_notifs",
-  "fiorese_weekly","fiorese_trend","fiorese_ingredient"
+  "fiorese_weekly","fiorese_trend","fiorese_ingredient","fiorese_schedule"
 ];
 // 금일 업무는 날짜별 키라 별도 처리 (오늘 것만)
 function todayKeyForSync(){const d=new Date();return "fiorese_today_"+d.getFullYear()+"-"+(d.getMonth()+1)+"-"+d.getDate();}
@@ -1267,8 +1269,8 @@ const files=[
 /* ============================================================
    대시보드 (요약카드 + 할일 + 라인진행 / 우측: 캘린더+이벤트)
 ============================================================ */
-/* 주간 날씨 데이터 (샘플 · 실제 연동은 후속 과제) */
-const weekWeather=[
+/* 주간 날씨 데이터 (기본 샘플 · 실제 날씨는 아래 함수로 가져옴) */
+let weekWeather=[
   {d:"일",ic:"☀️",hi:24,lo:14,desc:"맑음"},
   {d:"월",ic:"⛅",hi:23,lo:15,desc:"구름조금"},
   {d:"화",ic:"🌧️",hi:19,lo:13,desc:"비"},
@@ -1277,19 +1279,60 @@ const weekWeather=[
   {d:"금",ic:"☀️",hi:25,lo:15,desc:"맑음"},
   {d:"토",ic:"☀️",hi:26,lo:16,desc:"맑음"},
 ];
+let weatherLive=false; // 실제 날씨 받아왔는지
+const WEEKDAY_KR=["일","월","화","수","목","금","토"];
+// 날씨 코드 → 이모지
+function wmoIcon(code){
+  if(code===0) return "☀️";
+  if(code<=2) return "🌤️";
+  if(code===3) return "☁️";
+  if(code>=45&&code<=48) return "🌫️";
+  if(code>=51&&code<=67) return "🌧️";
+  if(code>=71&&code<=77) return "❄️";
+  if(code>=80&&code<=82) return "🌧️";
+  if(code>=95) return "⛈️";
+  return "⛅";
+}
+function wmoDesc(code){
+  if(code===0) return "맑음";
+  if(code<=2) return "구름조금";
+  if(code===3) return "흐림";
+  if(code>=45&&code<=48) return "안개";
+  if(code>=51&&code<=67) return "비";
+  if(code>=71&&code<=77) return "눈";
+  if(code>=80&&code<=82) return "소나기";
+  if(code>=95) return "뇌우";
+  return "구름많음";
+}
+// 수원 좌표로 이번 주 날씨 가져오기 (무료 Open-Meteo · 가입 불필요)
+async function loadWeather(){
+  try{
+    const url="https://api.open-meteo.com/v1/forecast?latitude=37.2636&longitude=127.0286&daily=weathercode,temperature_2m_max,temperature_2m_min&timezone=Asia%2FSeoul&forecast_days=7";
+    const res=await fetch(url);
+    const j=await res.json();
+    if(j&&j.daily&&j.daily.time){
+      const arr=[];
+      for(let i=0;i<j.daily.time.length;i++){
+        const dt=new Date(j.daily.time[i]+"T00:00:00");
+        arr.push({
+          d:WEEKDAY_KR[dt.getDay()],
+          ic:wmoIcon(j.daily.weathercode[i]),
+          hi:Math.round(j.daily.temperature_2m_max[i]),
+          lo:Math.round(j.daily.temperature_2m_min[i]),
+          desc:wmoDesc(j.daily.weathercode[i])
+        });
+      }
+      if(arr.length){ weekWeather=arr; weatherLive=true; }
+    }
+  }catch(e){ console.log("날씨 불러오기 실패(샘플 표시):",e); }
+}
 
-/* 날짜별 일정 (선택 시 표시) — 키: 4월 일자 */
-const scheduleByDate={
-  8:[{p:"blue",t:"PDRN 선스크린 임상 결과 수령",m:"CL-03 · 저자극 영문 리포트"},
-     {p:"amber",t:"젤리 클렌저 견적 비딩 마감",m:"용기 제조사 3사 견적"}],
-  14:[{p:"blue",t:"블루 PDRN 클렌저 유효성 리포트",m:"CL-02 · 영문 수령"}],
-  18:[{p:"amber",t:"PDRN 3종 문안 회신 마감",m:"제조사·CPNP 등록업체 회신"},
-      {p:"violet",t:"상표 대리인 정기 미팅",m:"해외 출원 진행 점검"}],
-  22:[{p:"rose",t:"딥 배리어 크림 재발주 검토",m:"F-09 · 완제품 재고 0"}],
-  24:[{p:"amber",t:"블루 클렌저 완제품 입고",m:"7/24 · 코스모코스"}],
-  30:[{p:"amber",t:"플러스 선스크린 봉합라벨 입고",m:"부자재 입고 예정"},
-      {p:"blue",t:"월말 진행 현황 정리",m:"제품 6종 상태 업데이트"}],
-};
+/* 날짜별 일정 — 키: "YYYY-M-D" 형식, 시트에 저장 */
+const scheduleDefault={};
+function schedKey(){return "fiorese_schedule";}
+function loadSched(){ try{const s=localStorage.getItem(schedKey());if(s)return JSON.parse(s);}catch(e){} return JSON.parse(JSON.stringify(scheduleDefault)); }
+function saveSched(){ try{localStorage.setItem(schedKey(),JSON.stringify(scheduleByDate));}catch(e){} saveToSheet(); }
+let scheduleByDate=loadSched();
 
 /* 확인 사항 기본값 (저장된 내용 없을 때만) */
 const checksDefault=[
@@ -1320,9 +1363,8 @@ function buildDash(){
   const stockOut=orderData.filter(o=>o.total==="0").length;
   const veganExp=certData.filter(c=>c.status[0]==="risk").length;
 
-  // 주간 날씨 위젯
-  const todayIdx=3; // 수요일 가정
-  const weatherHTML=weekWeather.map((w,i)=>`<div class="wday ${i===todayIdx?'today':''}">
+  // 주간 날씨 위젯 (오늘 = weekWeather 첫 항목, 실시간이면 오늘부터 시작)
+  const weatherHTML=weekWeather.map((w,i)=>`<div class="wday ${i===0?'today':''}">
     <div class="wd">${w.d}</div><div class="wic">${w.ic}</div>
     <div class="wt"><span class="whi">${w.hi}°</span><span class="wlo">${w.lo}°</span></div></div>`).join("");
 
@@ -1347,7 +1389,7 @@ function buildDash(){
     </div>
 
     <div class="block">
-      <div class="block-h"><div class="bt">🌤 이번 주 날씨</div><span class="bmore">수원 · 샘플</span></div>
+      <div class="block-h"><div class="bt">🌤 이번 주 날씨</div><span class="bmore">${weatherLive?'수원 · 실시간':'수원 · 샘플'}</span></div>
       <div class="card weather-card">${weatherHTML}</div>
     </div>
 
@@ -1370,38 +1412,59 @@ function buildDash(){
   bindUploader();
 }
 
-/* 우측 레일 — 날짜 선택 캘린더 + 선택일 일정 */
-let selectedDate=8;
+/* 우측 레일 — 날짜 선택 캘린더 + 선택일 일정 (직접 추가/삭제, 시트 저장) */
+let calYear=new Date().getFullYear();
+let calMonth=new Date().getMonth(); // 0~11
+let selectedDate=new Date().getDate();
+function sKey(y,m,d){return y+"-"+(m+1)+"-"+d;}
 function buildRail(){
   document.getElementById("rail").innerHTML=`
     <div class="block">
-      <div class="block-h"><div class="bt">📅 2026년 4월</div></div>
+      <div class="block-h">
+        <button class="cal-nav" id="calPrev" aria-label="이전 달">‹</button>
+        <div class="bt" id="calTitle">${calYear}년 ${calMonth+1}월</div>
+        <button class="cal-nav" id="calNext" aria-label="다음 달">›</button>
+      </div>
       <div class="cal"><div class="cal-grid" id="calGrid"></div></div>
     </div>
     <div class="block">
-      <div class="block-h"><div class="bt" id="schHead">4월 ${selectedDate}일 일정</div><span class="bmore" id="schCount"></span></div>
+      <div class="block-h"><div class="bt" id="schHead">${calMonth+1}월 ${selectedDate}일 일정</div><span class="bmore" id="schCount"></span></div>
       <div id="schList"></div>
+      <div class="card" style="padding:11px;margin-top:8px">
+        <div class="addrow" style="flex-wrap:wrap;gap:6px">
+          <input id="schAddT" class="tinput" placeholder="일정 내용" style="flex:1;min-width:110px">
+          <input id="schAddM" class="tinput" placeholder="메모(선택)" style="flex:1;min-width:90px">
+          <button class="addbtn" id="schAdd">추가</button>
+        </div>
+      </div>
     </div>`;
   renderCalendar();
   renderSchedule();
 }
 function renderCalendar(){
   const weeks=["일","월","화","수","목","금","토"];
-  const firstDow=3, daysInMonth=30, today=8;
+  const firstDow=new Date(calYear,calMonth,1).getDay();
+  const daysInMonth=new Date(calYear,calMonth+1,0).getDate();
+  const now=new Date();
+  const isThisMonth=(now.getFullYear()===calYear&&now.getMonth()===calMonth);
+  const today=now.getDate();
   let cells=weeks.map(w=>`<div class="cw">${w}</div>`).join("");
   for(let i=0;i<firstDow;i++)cells+=`<div class="cal-cell dim"></div>`;
   for(let d=1;d<=daysInMonth;d++){
-    const cls=[d===today?"today":"",scheduleByDate[d]?"has":"",d===selectedDate?"sel":""].join(" ");
+    const has=scheduleByDate[sKey(calYear,calMonth,d)]?"has":"";
+    const cls=[(isThisMonth&&d===today)?"today":"",has,d===selectedDate?"sel":""].join(" ");
     cells+=`<div class="cal-cell ${cls}" data-day="${d}">${d}</div>`;
   }
   document.getElementById("calGrid").innerHTML=cells;
+  const t=document.getElementById("calTitle"); if(t)t.textContent=`${calYear}년 ${calMonth+1}월`;
 }
 function renderSchedule(){
-  const list=scheduleByDate[selectedDate]||[];
-  document.getElementById("schHead").textContent=`4월 ${selectedDate}일 일정`;
+  const key=sKey(calYear,calMonth,selectedDate);
+  const list=scheduleByDate[key]||[];
+  document.getElementById("schHead").textContent=`${calMonth+1}월 ${selectedDate}일 일정`;
   document.getElementById("schCount").textContent=list.length?`${list.length}건`:"";
   document.getElementById("schList").innerHTML=list.length
-    ? list.map(e=>`<div class="revent"><span class="rdot p-${e.p}"></span><div class="rbody"><div class="rt">${e.t}</div><div class="rm">${e.m}</div></div></div>`).join("")
+    ? list.map((e,i)=>`<div class="revent"><span class="rdot p-${e.p||'blue'}"></span><div class="rbody"><div class="rt">${e.t}</div>${e.m?`<div class="rm">${e.m}</div>`:''}</div><button class="tdel" data-schdel="${i}" aria-label="삭제">✕</button></div>`).join("")
     : `<div class="rempty">선택한 날짜에 등록된 일정이 없습니다.</div>`;
 }
 
@@ -1998,6 +2061,7 @@ function renderAll(){
 (async function initApp(){
   showSyncBadge("saving");
   await loadFromSheet();
+  await loadWeather();
   // 시트에서 불러온 최신 데이터로 변수들 다시 채우기
   productInfo = loadPi();
   clinicalStudies = loadClin();
@@ -2012,6 +2076,7 @@ function renderAll(){
   trendData = loadTrend();
   ingredientData = loadIng();
   todayTasks = loadToday();
+  scheduleByDate = loadSched();
   renderAll();
   showSyncBadge("saved");
 })();
@@ -2320,6 +2385,29 @@ document.body.addEventListener("click",e=>{
   if(tr){tr.classList.toggle("open");return;}
   const day=e.target.closest(".cal-cell[data-day]");
   if(day){selectedDate=parseInt(day.dataset.day);renderCalendar();renderSchedule();return;}
+  // 이전/다음 달
+  if(e.target.id==="calPrev"){ calMonth--; if(calMonth<0){calMonth=11;calYear--;} selectedDate=1; renderCalendar(); renderSchedule(); return; }
+  if(e.target.id==="calNext"){ calMonth++; if(calMonth>11){calMonth=0;calYear++;} selectedDate=1; renderCalendar(); renderSchedule(); return; }
+  // 일정 추가
+  if(e.target.id==="schAdd"){
+    const t=(document.getElementById("schAddT").value||"").trim();
+    const m=(document.getElementById("schAddM").value||"").trim();
+    if(t){
+      const key=sKey(calYear,calMonth,selectedDate);
+      if(!scheduleByDate[key]) scheduleByDate[key]=[];
+      scheduleByDate[key].push({p:"blue",t,m});
+      saveSched(); renderCalendar(); renderSchedule();
+    }
+    return;
+  }
+  // 일정 삭제
+  const schDel=e.target.closest("[data-schdel]");
+  if(schDel){
+    const key=sKey(calYear,calMonth,selectedDate);
+    const i=+schDel.dataset.schdel;
+    if(scheduleByDate[key]){ scheduleByDate[key].splice(i,1); if(!scheduleByDate[key].length) delete scheduleByDate[key]; saveSched(); renderCalendar(); renderSchedule(); }
+    return;
+  }
   const folder=e.target.closest(".folder[data-folder]");
   if(folder){selectedFolder=folder.dataset.folder;renderFolderGrid();renderFileList();return;}
   const prev=e.target.closest(".fpreview[data-file]");
