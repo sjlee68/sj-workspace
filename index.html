@@ -221,6 +221,8 @@
   .stedit:hover{background:var(--blue-soft)}
   .pi-toggle{cursor:pointer}
   .pi-toggle:hover{background:var(--blue-soft)}
+  .ig-toggle{cursor:pointer}
+  .ig-toggle:hover{background:var(--blue-soft)}
   .prog-cell{cursor:pointer}
   .prog-cell:hover{background:var(--blue-soft)}
   .matct{cursor:pointer}
@@ -309,6 +311,8 @@
   .line-badge{display:inline-block;width:14px;height:14px;border-radius:50%;cursor:pointer;vertical-align:middle;transition:.12s;border:2px solid transparent}
   .line-badge.ph{background:#2563eb} .line-badge.gb{background:#db2777}
   .line-badge:hover{transform:scale(1.2);box-shadow:0 0 0 3px rgba(0,0,0,.06)}
+  .ord-num{width:42px;border:1px solid var(--line);border-radius:6px;padding:3px 5px;font-size:11px;text-align:center;font-family:inherit;margin-right:4px;outline:none}
+  .ord-num:focus{border-color:var(--blue)}
   .ord-btn{border:1px solid var(--line);background:var(--card);color:var(--ink-2);width:22px;height:22px;border-radius:5px;cursor:pointer;font-size:9px;margin-right:3px;padding:0;line-height:1}
   .ord-btn:hover:not(:disabled){background:var(--blue-soft);border-color:var(--blue);color:var(--blue)}
   .ord-btn:disabled{opacity:.3;cursor:default}
@@ -934,21 +938,24 @@ function buildClinical(){
       <td class="vline num editable" data-clinfld="${r.si}" data-cf="start" title="클릭해서 수정">${s.start}</td>
       <td class="vline num editable" data-clinfld="${r.si}" data-cf="kor" title="클릭해서 수정">${s.kor}</td>
       <td class="vline num editable" data-clinfld="${r.si}" data-cf="eng" title="클릭해서 수정">${s.eng}</td>
-      <td class="vline" style="white-space:nowrap"><button class="ord-btn" data-clinup="${r.si}" title="위로" ${r.si===0?'disabled':''}>▲</button><button class="ord-btn" data-clindn="${r.si}" title="아래로" ${r.si===clinicalStudies.length-1?'disabled':''}>▼</button></td>
+      <td class="vline" style="white-space:nowrap"><input class="ord-num" type="number" min="1" max="${clinicalStudies.length}" value="${r.si+1}" data-clinorder="${r.si}" title="번호를 바꾸면 그 순서로 이동합니다"></td>
       <td class="vline">${r.first?`<button class="tdel" data-clindel="${r.si}" aria-label="삭제">✕</button>`:''}</td></tr>`;
   }).join("");
   const tableHTML=`<div class="tablecard"><div class="scrollx"><table class="vtable">${head}<tbody>${body}</tbody></table></div></div>`;
 
-  const prodOpts=(typeof productInfo!=="undefined"?productInfo:[]).map(p=>`<option value="${p.name.replace(/"/g,'&quot;')}">${p.name}</option>`).join("");
+  const prodChecks=(typeof productInfo!=="undefined"?productInfo:[]).map((p,idx)=>`<label class="igchk" style="margin-right:10px"><input type="checkbox" class="clProdChk" value="${p.name.replace(/"/g,'&quot;')}">${p.name}</label>`).join("");
   const addForm=`<div class="block">
     <div class="block-h"><div class="bt">➕ 임상 추가 (일정 등록)</div></div>
-    <div class="card" style="padding:13px"><div class="addrow" style="flex-wrap:wrap">
-      <select id="clAddProd" class="tinput" style="flex:1;min-width:160px"><option value="">대상 제품 선택</option>${prodOpts}</select>
-      <input id="clAddItem" class="tinput" placeholder="임상항목 (예: 저자극 시험)" style="flex:1;min-width:140px">
-      <input id="clAddLab" class="tinput" placeholder="기관" style="max-width:120px">
-      <input id="clAddStart" class="tinput" placeholder="시작일 (예: 2026.05.01)" style="max-width:150px">
-      <button class="addbtn" id="clAdd">추가</button>
-    </div><div class="savehint">여러 제품 공동 임상은 추가 후 제품명 칸에서 쉼표로 이어 쓸 수 있어요.</div></div></div>`;
+    <div class="card" style="padding:13px">
+      <div style="font-size:11.5px;font-weight:700;color:var(--ink-2);margin-bottom:7px">대상 제품 선택 (여러 개 선택 가능)</div>
+      <div style="display:flex;flex-wrap:wrap;gap:4px 0;margin-bottom:12px;padding:8px 10px;background:var(--bg);border-radius:9px">${prodChecks||'<span class="tmemo-inline dim">제품 정보 탭에서 제품을 먼저 추가하세요</span>'}</div>
+      <div class="addrow" style="flex-wrap:wrap">
+        <input id="clAddItem" class="tinput" placeholder="임상항목 (예: 저자극 시험)" style="flex:1;min-width:160px">
+        <input id="clAddLab" class="tinput" placeholder="기관" style="max-width:140px">
+        <button class="addbtn" id="clAdd">추가</button>
+      </div>
+      <div class="savehint">여러 제품을 체크하면 공동 임상으로 등록됩니다. 시작일·발행일은 추가 후 표에서 입력하세요.</div>
+    </div></div>`;
 
   document.getElementById("clinical").innerHTML=shell("clinical","임상","제품별 임상 현황 · 항목 · 기관 · 발행일",cardHTML,tableHTML,
     `<div class="banner">👉 표에서 <b>항목·기관·상태·발행일</b>을 직접 수정하고, 아래에서 <b>임상 일정을 추가</b>할 수 있습니다.</div>`+addForm);
@@ -1997,7 +2004,7 @@ function buildProductInfo(){
     <td class="vline pi-toggle" data-pitoggle="${i}" data-pic="cpnp" title="클릭해서 전환">${yn(p.cpnp)}</td>
     <td class="vline pi-toggle" data-pitoggle="${i}" data-pic="mocra" title="클릭해서 전환">${yn(p.mocra)}</td>
     <td class="vline"><span class="doclink" data-ing="${i}">🧾 다 보기</span></td>
-    <td class="vline" style="white-space:nowrap"><button class="ord-btn" data-pimoveup="${i}" title="위로" ${i===0?'disabled':''}>▲</button><button class="ord-btn" data-pimovedn="${i}" title="아래로" ${i===productInfo.length-1?'disabled':''}>▼</button><button class="tdel" data-pidel="${i}" aria-label="삭제">✕</button></td></tr>`).join("");
+    <td class="vline" style="white-space:nowrap"><input class="ord-num" type="number" min="1" max="${productInfo.length}" value="${i+1}" data-piorder="${i}" title="번호를 바꾸면 그 순서로 이동합니다"><button class="tdel" data-pidel="${i}" aria-label="삭제">✕</button></td></tr>`).join("");
   const tableHTML=`<div class="tablecard"><div class="scrollx"><table class="vtable">${head}<tbody>${body}</tbody></table></div></div>`;
 
   const addForm=`<div class="block">
@@ -2060,9 +2067,14 @@ function buildIngredient(){
   }
   const cardHTML=`<div class="cards">${ingredientData.map((g,i)=>card(g,i)).join("")}</div>`;
   const head=`<thead><tr><th class="stickyc">원료명</th><th class="vline">효능</th><th class="vline">비건</th><th class="vline">CPNP</th><th class="vline">MoCRA</th><th class="vline">할랄</th><th class="vline">비고</th><th class="vline"></th></tr></thead>`;
-  const body=ingredientData.map((g,i)=>`<tr><td class="stickyc">${g.name}<div style="font-size:10.5px;color:var(--ink-3);font-weight:500">${g.eng}</div></td>
-    <td class="vline">${g.func}</td><td class="vline">${yn(g.vegan)}</td><td class="vline">${yn(g.cpnp)}</td><td class="vline">${yn(g.mocra)}</td><td class="vline">${yn(g.halal)}</td>
-    <td class="vline" style="white-space:normal;min-width:150px;color:var(--ink-2)">${g.note}</td>
+  const body=ingredientData.map((g,i)=>`<tr>
+    <td class="stickyc"><span class="editable" data-igfield="${i}" data-igf="name" title="클릭해서 수정">${g.name}</span><div class="editable" data-igfield="${i}" data-igf="eng" style="font-size:10.5px;color:var(--ink-3);font-weight:500" title="클릭해서 수정">${g.eng||"-"}</div></td>
+    <td class="vline editable" data-igfield="${i}" data-igf="func" title="클릭해서 수정">${g.func||"-"}</td>
+    <td class="vline ig-toggle" data-igtoggle="${i}" data-igc="vegan" title="클릭해서 전환">${yn(g.vegan)}</td>
+    <td class="vline ig-toggle" data-igtoggle="${i}" data-igc="cpnp" title="클릭해서 전환">${yn(g.cpnp)}</td>
+    <td class="vline ig-toggle" data-igtoggle="${i}" data-igc="mocra" title="클릭해서 전환">${yn(g.mocra)}</td>
+    <td class="vline ig-toggle" data-igtoggle="${i}" data-igc="halal" title="클릭해서 전환">${yn(g.halal)}</td>
+    <td class="vline editable" data-igfield="${i}" data-igf="note" style="white-space:normal;min-width:150px;color:var(--ink-2)" title="클릭해서 수정">${g.note||"-"}</td>
     <td class="vline"><button class="tdel" data-ingdel="${i}" aria-label="삭제">✕</button></td></tr>`).join("");
   const tableHTML=`<div class="tablecard"><div class="scrollx"><table class="vtable">${head}<tbody>${body}</tbody></table></div></div>`;
   const addForm=`<div class="block">
@@ -2172,6 +2184,7 @@ document.getElementById("hamburger").addEventListener("click",openSidebar);
 document.getElementById("scrim").addEventListener("click",closeSidebar);
 
 /* 이벤트 위임 */
+document.body.addEventListener("change",e=>{const po=e.target.closest("[data-piorder]");if(po){const from=+po.dataset.piorder;let to=parseInt(po.value,10)-1;if(isNaN(to))to=from;to=Math.max(0,Math.min(productInfo.length-1,to));if(to!==from){const it=productInfo.splice(from,1)[0];productInfo.splice(to,0,it);savePi();buildProductInfo();}return;}const co=e.target.closest("[data-clinorder]");if(co){const from=+co.dataset.clinorder;let to=parseInt(co.value,10)-1;if(isNaN(to))to=from;to=Math.max(0,Math.min(clinicalStudies.length-1,to));if(to!==from){const it=clinicalStudies.splice(from,1)[0];clinicalStudies.splice(to,0,it);saveClin();buildClinical();}return;}});
 document.body.addEventListener("click",e=>{
   // 알림 항목 클릭 → 해당 탭으로 이동
   const nitem=e.target.closest(".notif-item[data-notif]");
@@ -2250,10 +2263,15 @@ document.body.addEventListener("click",e=>{
   // 제품정보 인증 O/X 토글
   // 라인업 뱃지 클릭 → PH ↔ GB 전환
   // 제품 순서 위/아래 이동
-  const pmoveup=e.target.closest("[data-pimoveup]");
-  if(pmoveup){const i=+pmoveup.dataset.pimoveup;if(i>0){[productInfo[i-1],productInfo[i]]=[productInfo[i],productInfo[i-1]];savePi();buildProductInfo();}return;}
-  const pmovedn=e.target.closest("[data-pimovedn]");
-  if(pmovedn){const i=+pmovedn.dataset.pimovedn;if(i<productInfo.length-1){[productInfo[i+1],productInfo[i]]=[productInfo[i],productInfo[i+1]];savePi();buildProductInfo();}return;}
+  const piorder=e.target.closest("[data-piorder]");
+  if(piorder&&e.type==="change"){
+    const from=+piorder.dataset.piorder;
+    let to=parseInt(piorder.value,10)-1;
+    if(isNaN(to))to=from;
+    to=Math.max(0,Math.min(productInfo.length-1,to));
+    if(to!==from){ const item=productInfo.splice(from,1)[0]; productInfo.splice(to,0,item); savePi(); buildProductInfo(); }
+    return;
+  }
   const plinetoggle=e.target.closest(".line-badge[data-plinetoggle]");
   if(plinetoggle){const i=+plinetoggle.dataset.plinetoggle;productInfo[i].line=productInfo[i].line==="ph"?"gb":"ph";savePi();buildProductInfo();return;}
   const pitoggle=e.target.closest(".pi-toggle[data-pitoggle]");
@@ -2282,6 +2300,21 @@ document.body.addEventListener("click",e=>{
   // 원료 삭제
   const igDel=e.target.closest("[data-ingdel]");
   if(igDel){ingredientData.splice(+igDel.dataset.ingdel,1);saveIng();buildIngredient();return;}
+  // 원료 인증 토글 (비건/CPNP/MoCRA/할랄)
+  const igtoggle=e.target.closest(".ig-toggle[data-igtoggle]");
+  if(igtoggle){const i=+igtoggle.dataset.igtoggle, c=igtoggle.dataset.igc;ingredientData[i][c]=!ingredientData[i][c];saveIng();buildIngredient();return;}
+  // 원료 텍스트 편집 (원료명/영문/효능/비고)
+  const igfield=e.target.closest(".editable[data-igfield]");
+  if(igfield&&!igfield.querySelector("input")){
+    const i=+igfield.dataset.igfield, f=igfield.dataset.igf;
+    const cur=ingredientData[i][f]||"";
+    igfield.innerHTML=`<input class="celledit" style="width:100%" value="${(cur+'').replace(/"/g,'&quot;')}" placeholder="입력">`;
+    const inp=igfield.querySelector("input");inp.focus();inp.select();
+    const commit=()=>{ingredientData[i][f]=inp.value.trim();saveIng();buildIngredient();};
+    inp.onkeydown=ev=>{if(ev.key==="Enter")commit();if(ev.key==="Escape")buildIngredient();};
+    inp.onblur=commit;
+    return;
+  }
   // 원료 추가
   if(e.target.id==="igAdd"){
     const name=(document.getElementById("igName").value||"").trim();
@@ -2313,22 +2346,21 @@ document.body.addEventListener("click",e=>{
   }
   // 임상 삭제
   // 임상 순서 이동
-  const clinup=e.target.closest("[data-clinup]");
-  if(clinup){const i=+clinup.dataset.clinup;if(i>0){[clinicalStudies[i-1],clinicalStudies[i]]=[clinicalStudies[i],clinicalStudies[i-1]];saveClin();buildClinical();}return;}
-  const clindn=e.target.closest("[data-clindn]");
-  if(clindn){const i=+clindn.dataset.clindn;if(i<clinicalStudies.length-1){[clinicalStudies[i+1],clinicalStudies[i]]=[clinicalStudies[i],clinicalStudies[i+1]];saveClin();buildClinical();}return;}
+  const clinorder=e.target.closest("[data-clinorder]");
+  if(clinorder&&e.type==="change"){const from=+clinorder.dataset.clinorder;let to=parseInt(clinorder.value,10)-1;if(isNaN(to))to=from;to=Math.max(0,Math.min(clinicalStudies.length-1,to));if(to!==from){const item=clinicalStudies.splice(from,1)[0];clinicalStudies.splice(to,0,item);saveClin();buildClinical();}return;}
   const clinDel=e.target.closest("[data-clindel]");
   if(clinDel){const i=+clinDel.dataset.clindel;if(confirm(`"${clinicalStudies[i].title}" 임상을 삭제할까요?`)){clinicalStudies.splice(i,1);saveClin();buildClinical();}return;}
   // 임상 추가
   if(e.target.id==="clAdd"){
-    const prods=(document.getElementById("clAddProd").value||"").split(",").map(s=>s.trim()).filter(Boolean);
+    const prods=Array.from(document.querySelectorAll(".clProdChk:checked")).map(c=>c.value.trim()).filter(Boolean);
     const item=(document.getElementById("clAddItem").value||"").trim();
     const lab=(document.getElementById("clAddLab").value||"").trim();
-    const start=(document.getElementById("clAddStart").value||"").trim();
     if(prods.length&&item){
       const n=clinicalStudies.length+1;
-      clinicalStudies.push({id:"CL-"+String(n).padStart(2,"0"),title:item+(prods.length>1?` (${prods.length}종 공동)`:""),item,lab:lab||"-",status:["wait","대기"],start:start||"-",kor:"-",eng:"-",doc:item+" 임상계획서.docx",products:prods,result:""});
+      clinicalStudies.push({id:"CL-"+String(n).padStart(2,"0"),title:item+(prods.length>1?` (${prods.length}종 공동)`:""),item,lab:lab||"-",status:["wait","대기"],start:"-",kor:"-",eng:"-",doc:item+" 임상계획서.docx",products:prods,result:""});
       saveClin();buildClinical();
+    }else if(!prods.length){
+      alert("대상 제품을 하나 이상 선택해주세요.");
     }
     return;
   }
