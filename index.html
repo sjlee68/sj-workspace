@@ -306,9 +306,9 @@
   tbody tr.ph-row:hover td{background:#eef5ff} tbody tr.ph-row:hover .stickyc{background:#dfeaff}
   tbody tr.gb-row:hover td{background:#faeef4} tbody tr.gb-row:hover .stickyc{background:#f7e0ec}
   .right{text-align:right}
-  .line-badge{display:inline-block;font-size:9.5px;font-weight:800;padding:2px 5px;border-radius:5px;cursor:pointer;vertical-align:middle;letter-spacing:.3px;transition:.12s}
-  .line-badge.ph{background:#d3e4ff;color:#1e5bc6} .line-badge.gb{background:#f9d7e6;color:#c23a75}
-  .line-badge:hover{filter:brightness(.95);transform:scale(1.05)}
+  .line-badge{display:inline-block;width:14px;height:14px;border-radius:50%;cursor:pointer;vertical-align:middle;transition:.12s;border:2px solid transparent}
+  .line-badge.ph{background:#2563eb} .line-badge.gb{background:#db2777}
+  .line-badge:hover{transform:scale(1.2);box-shadow:0 0 0 3px rgba(0,0,0,.06)}
   .ord-btn{border:1px solid var(--line);background:var(--card);color:var(--ink-2);width:22px;height:22px;border-radius:5px;cursor:pointer;font-size:9px;margin-right:3px;padding:0;line-height:1}
   .ord-btn:hover:not(:disabled){background:var(--blue-soft);border-color:var(--blue);color:var(--blue)}
   .ord-btn:disabled{opacity:.3;cursor:default}
@@ -503,7 +503,13 @@
       <div><div class="bt">FIORESE</div><div class="bs">상품기획 워크스페이스</div></div>
     </div>
     <nav class="sb-nav" id="sbNav"></nav>
-    <div class="sb-foot">FIORESE 워크스페이스<br>🔒 개인용 · 데이터는 구글 시트 저장</div>
+    <div class="sb-foot">
+      <button id="sbRefresh" style="width:100%;display:flex;align-items:center;justify-content:center;gap:7px;background:rgba(255,255,255,.08);color:#c5cde0;border:none;border-radius:8px;padding:8px 10px;font-size:11.5px;font-weight:700;cursor:pointer;margin-bottom:10px;transition:.12s" onmouseover="this.style.background='rgba(255,255,255,.16)'" onmouseout="this.style.background='rgba(255,255,255,.08)'">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M23 4v6h-6"/><path d="M1 20v-6h6"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
+        새로고침
+      </button>
+      FIORESE 워크스페이스<br>🔒 개인용 · 데이터는 구글 시트 저장
+    </div>
   </aside>
 
   <!-- 메인 -->
@@ -866,7 +872,7 @@ function buildProgress(){
   const cardHTML=["ph","gb"].map(l=>`<div class="lgroup">${lineChip(l)}<div class="cards">${products.filter(p=>p.line===l).map(card).join("")}</div></div>`).join("");
 
   // 표: 제품 × 트랙(기획·처방·디자인·인증), 각 칸 클릭 편집
-  const head=`<thead><tr><th class="stickyc">제품명</th><th class="vline">용량</th>${TRACK_ORDER.map(t=>`<th class="vline">${t}</th>`).join("")}<th class="vline"></th></tr></thead>`;
+  const head=`<thead><tr><th class="stickyc">제품명</th><th class="vline">용량</th>${TRACK_ORDER.map(t=>`<th class="vline">${t}</th>`).join("")}</tr></thead>`;
   const body=products.map((p,pi)=>{
     const cells=TRACK_ORDER.map(k=>{
       const has=!!p.tracks[k];
@@ -879,7 +885,7 @@ function buildProgress(){
       else inner=`<span class="tmemo-inline">${memo||"진행중"}</span>`;
       return `<td class="vline prog-cell" data-progedit="${pi}" data-progk="${k}" title="클릭해서 수정">${inner}</td>`;
     }).join("");
-    return `<tr class="${p.line}-row"><td class="stickyc" data-progname="${pi}">${p.name}</td><td class="vline" data-progvol="${pi}">${p.vol}</td>${cells}<td class="vline"><span class="tmemo-inline dim" style="font-size:10px">제품정보 연동</span></td></tr>`;
+    return `<tr class="${p.line}-row"><td class="stickyc" data-progname="${pi}">${p.name}</td><td class="vline" data-progvol="${pi}">${p.vol}</td>${cells}</tr>`;
   }).join("");
   const tableHTML=`<div class="tablecard"><div class="scrollx"><table class="vtable">${head}<tbody>${body}</tbody></table></div></div>`;
 
@@ -1183,22 +1189,33 @@ function buildTM(){
     return `<div class="block">
       <div class="block-h"><div class="bt">${glabel}</div><span class="bmore">${items.length}건</span></div>
       <div class="tablecard"><div class="scrollx"><table class="vtable">${head}<tbody>${body}</tbody></table></div></div>
-      <div class="card" style="padding:11px;margin-top:8px">
-        <div class="addrow" style="flex-wrap:wrap;gap:6px">
-          <input class="tinput tm-add-country" data-addg="${gkey}" placeholder="국가" style="max-width:110px">
-          <input class="tinput tm-add-mark" data-addg="${gkey}" placeholder="상표명" style="max-width:120px">
-          <input class="tinput tm-add-cls" data-addg="${gkey}" placeholder="류(예: 03류)" style="max-width:100px">
-          <input class="tinput tm-add-agent" data-addg="${gkey}" placeholder="대리인" style="max-width:110px">
-          <button class="addbtn" data-tmadd="${gkey}">추가</button>
-        </div>
-      </div>
     </div>`;
   }
   const tablesHTML=GROUPS.map(([k,l])=>groupTable(k,l)).join("");
 
+  // 맨 위 통합 추가 폼 (구분 선택 포함)
+  const addForm=`<div class="block">
+    <div class="block-h"><div class="bt">➕ 상표 추가</div></div>
+    <div class="card" style="padding:13px">
+      <div class="addrow" style="flex-wrap:wrap;gap:6px">
+        <select class="tinput" id="tmAddGroup" style="max-width:150px">
+          <option value="domestic">🇰🇷 국내</option>
+          <option value="madrid">🌏 해외 · 마드리드</option>
+          <option value="individual">📄 해외 · 개별출원</option>
+        </select>
+        <input class="tinput" id="tmAddCountry" placeholder="국가" style="max-width:110px">
+        <input class="tinput" id="tmAddMark" placeholder="상표명" style="max-width:120px">
+        <input class="tinput" id="tmAddCls" placeholder="류(예: 03류)" style="max-width:100px">
+        <input class="tinput" id="tmAddAgent" placeholder="대리인" style="max-width:110px">
+        <button class="addbtn" id="tmAddBtn">추가</button>
+      </div>
+    </div>
+  </div>`;
+
   document.getElementById("tm").innerHTML=`
     <div class="page-h"><div><div class="pt">상표 현황</div><div class="ps">구분(국내 · 마드리드 · 개별)별 관리 · 03류 중심</div></div></div>
-    <div class="banner">👉 구분별 표에서 각 칸을 눌러 수정하고, 각 표 아래에서 <b>상표를 추가</b>할 수 있습니다.</div>
+    <div class="banner">👉 표에서 각 칸을 눌러 수정하고, 맨 위에서 <b>구분을 골라 상표를 추가</b>할 수 있습니다.</div>
+    ${addForm}
     <div class="only-desktop">${tablesHTML}</div>
     <div class="only-mobile"><div class="block"><div class="block-h"><div class="bt">전체 상표</div></div>${cardHTML}</div></div>`;
 }
@@ -1579,8 +1596,10 @@ let workLog=loadWorklog();
 function todayStr(){const d=new Date();return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");}
 function weekRange(baseDate){
   const d=baseDate?new Date(baseDate):new Date();
-  const sun=new Date(d); sun.setDate(d.getDate()-d.getDay());
-  const sat=new Date(sun); sat.setDate(sun.getDate()+6);
+  // 월요일 시작 기준: 일요일(0)이면 6일 전, 그 외엔 (요일-1)일 전이 이번 주 월요일
+  const mon=new Date(d); const dow=d.getDay(); mon.setDate(d.getDate()-(dow===0?6:dow-1));
+  const sun=mon; // 아래 코드 호환용 변수명 유지 (실제로는 월요일)
+  const sat=new Date(mon); sat.setDate(mon.getDate()+6); // 이번 주 일요일
   const f=x=>x.getFullYear()+"-"+String(x.getMonth()+1).padStart(2,"0")+"-"+String(x.getDate()).padStart(2,"0");
   return {start:f(sun),end:f(sat)};
 }
@@ -1968,7 +1987,7 @@ function buildProductInfo(){
   const head=`<thead><tr><th class="stickyc">제품명</th><th class="vline">코드</th><th class="vline">용량</th><th class="vline">카테고리</th><th class="vline">랩넘버</th><th class="vline">핵심 성분</th><th class="vline">비건</th><th class="vline">CPNP</th><th class="vline">MoCRA</th><th class="vline">전성분</th><th class="vline"></th></tr></thead>`;
   function yn(v){return v?'<span class="ing-y">O</span>':'<span class="ing-n">X</span>';}
   const body=productInfo.map((p,i)=>`<tr class="${p.line}-row">
-    <td class="stickyc"><span class="line-badge ${p.line}" data-plinetoggle="${i}" title="눌러서 라인업 변경">${p.line==='ph'?'PH':'GB'}</span><span class="editable" data-piedit="${i}" data-pif="name" title="클릭해서 수정" style="margin-left:6px">${p.name}</span></td>
+    <td class="stickyc"><span class="line-badge ${p.line}" data-plinetoggle="${i}" title="눌러서 라인업 변경 (파랑=Pure Hydra / 핑크=Glow & Barrier)"></span><span class="editable" data-piedit="${i}" data-pif="name" title="클릭해서 수정" style="margin-left:8px">${p.name}</span></td>
     <td class="vline editable" data-piedit="${i}" data-pif="code" title="클릭해서 수정">${p.code}</td>
     <td class="vline editable" data-piedit="${i}" data-pif="vol" title="클릭해서 수정">${p.vol}</td>
     <td class="vline editable" data-piedit="${i}" data-pif="cat" title="클릭해서 수정">${p.cat}</td>
@@ -2149,6 +2168,7 @@ document.getElementById("content").classList.toggle("no-rail",!RAIL_TABS.has("da
 function openSidebar(){document.getElementById("sidebar").classList.add("open");document.getElementById("scrim").classList.add("show");}
 function closeSidebar(){document.getElementById("sidebar").classList.remove("open");document.getElementById("scrim").classList.remove("show");}
 document.getElementById("hamburger").addEventListener("click",openSidebar);
+(function(){var rb=document.getElementById("sbRefresh"); if(rb){ rb.addEventListener("click",function(){ location.reload(); }); }})();
 document.getElementById("scrim").addEventListener("click",closeSidebar);
 
 /* 이벤트 위임 */
@@ -2368,15 +2388,13 @@ document.body.addEventListener("click",e=>{
     inp.onblur=commit;
     return;
   }
-  // 상표 추가 (구분별)
-  const tmadd=e.target.closest("[data-tmadd]");
-  if(tmadd){
-    const g=tmadd.dataset.tmadd;
-    const q=sel=>document.querySelector(`.${sel}[data-addg="${g}"]`);
-    const country=(q("tm-add-country").value||"").trim();
-    const mark=(q("tm-add-mark").value||"").trim()||"FIORESE";
-    const cls=(q("tm-add-cls").value||"").trim()||"03류";
-    const agent=(q("tm-add-agent").value||"").trim();
+  // 상표 추가 (맨 위 통합 폼 · 구분 선택)
+  if(e.target.id==="tmAddBtn"){
+    const g=document.getElementById("tmAddGroup").value;
+    const country=(document.getElementById("tmAddCountry").value||"").trim();
+    const mark=(document.getElementById("tmAddMark").value||"").trim()||"FIORESE";
+    const cls=(document.getElementById("tmAddCls").value||"").trim()||"03류";
+    const agent=(document.getElementById("tmAddAgent").value||"").trim();
     if(country){
       tmData.push({group:g,country,mark,cls,agent,status:["prog","진행중"],detail:"",no:"",regDate:"",renew:"",note:""});
       saveTm();buildTM();
